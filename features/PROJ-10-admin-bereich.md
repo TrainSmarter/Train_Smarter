@@ -6,7 +6,7 @@
 
 ## Dependencies
 - Requires: PROJ-1–PROJ-6 (alle Kern-Features)
-- Requires: PROJ-4 (Authentication) — ADMIN Rolle
+- Requires: PROJ-4 (Authentication) — `app_metadata.is_platform_admin` Flag
 
 ## Übersicht
 Plattform-Administratoren haben Zugang zu einem Admin-Bereich für Benutzerverwaltung, Übungs-Datenbank-Pflege, Audit-Log und System-Statistiken. Der Admin-Bereich ist ausschließlich für interne Nutzung (nicht für Endkunden).
@@ -57,9 +57,32 @@ Plattform-Administratoren haben Zugang zu einem Admin-Bereich für Benutzerverwa
 - Audit-Log wird sehr groß → Archivierung nach 1 Jahr in Cold Storage (geplant für später)
 
 ## Technical Requirements
-- Security: Admin-Routen prüfen serverseitig auf ADMIN-Rolle (Middleware + RLS)
+- Security: Admin-Routen prüfen serverseitig auf `app_metadata.is_platform_admin = true` (Middleware + RLS)
+- Security: **KEIN** `"ADMIN"` UserRole — Zugriff ausschließlich über `is_platform_admin` Flag in `app_metadata`
 - Security: Alle Admin-Aktionen werden im Audit-Log gespeichert (inklusive Admin-User-ID)
-- Access: Admin-Bereich ist nur über direkten URL-Aufruf erreichbar (kein Nav-Item für Non-Admins)
+- Access: Admin-Bereich ist nur über direkten URL-Aufruf erreichbar (kein Nav-Item wenn `is_platform_admin = false`)
+
+## Zugriffs-Architektur
+
+```
+Middleware (/admin/* Routen)
+  → Lese app_metadata.is_platform_admin via Supabase getUser() (server-side)
+  → false → Redirect zu /dashboard (kein Fehler-Screen, kein Hinweis)
+  → true  → Zugriff erlaubt
+
+NavMain (Client)
+  → NavSection "admin" hat requiresPlatformAdmin: true
+  → Nur sichtbar wenn isPlatformAdmin = true (aus app_metadata)
+
+Supabase RLS
+  → /admin/users → nur lesbar/schreibbar wenn is_platform_admin = true (service-role check)
+```
+
+### Warum kein UserRole "ADMIN"?
+- Platform-Admins sind reguläre Nutzer (Trainer/Athlete) mit zusätzlichem Zugriffs-Flag
+- Ermöglicht: Ein Trainer kann gleichzeitig Platform-Admin sein
+- Verhindert: Rollenverwechslung zwischen Club-Admin (PROJ-9) und Platform-Admin
+- Sicherheit: Flag nur via service-role key setzbar — kein Self-Escalation möglich
 
 ---
 <!-- Sections below are added by subsequent skills -->

@@ -6,7 +6,7 @@
 
 ## Dependencies
 - Requires: PROJ-1–PROJ-5 (Fundament + Athleten-Management)
-- Requires: PROJ-4 (Authentication) — Club-Admin Rolle
+- Requires: PROJ-4 (Authentication) — Supabase Auth + app_metadata
 
 ## Übersicht
 Organisationen (Vereine/Clubs) können mehrere Trainer und deren Athleten unter einem Dach verwalten. Club-Admins verwalten Mitgliedschaften, Trainer laden Athleten ein wie bisher — aber innerhalb des Club-Kontexts.
@@ -47,6 +47,45 @@ Organisationen (Vereine/Clubs) können mehrere Trainer und deren Athleten unter 
 ## Technical Requirements
 - Security: RLS — Club-Admin sieht nur eigenen Club; Trainer sieht nur seinen Club
 - Multi-tenancy: Alle clubbezogenen Daten haben `club_id` Foreign Key
+
+## Datenbankschema: club_memberships (Phase 2)
+
+> **WICHTIG:** "Club-Admin" ist **kein** globaler UserRole-Typ. Es gibt keine `"ADMIN"` in `UserRole`.
+> Club-Adminrechte werden ausschließlich über die `club_memberships`-Tabelle geregelt.
+
+```
+clubs
+├── id: uuid (PK)
+├── name: text
+├── description: text | null
+├── logo_url: text | null
+└── created_at: timestamp
+
+club_memberships
+├── id: uuid (PK)
+├── club_id: uuid (FK → clubs)
+├── user_id: uuid (FK → auth.users)
+├── club_role: "OWNER" | "TRAINER" | "ATHLETE"
+│     OWNER   → Kann Club-Mitglieder verwalten, Club-Einstellungen ändern
+│     TRAINER → Sieht andere Trainer im Club, kann Athleten (im Club-Kontext) einladen
+│     ATHLETE → Sieht nur eigene Daten, kein Zugriff auf Club-Verwaltung
+├── joined_at: timestamp
+└── UNIQUE (club_id, user_id)
+```
+
+### Abgrenzung Club-Rolle vs. globale Rolle
+| | Globale Rolle (`app_metadata.role`) | Club-Rolle (`club_memberships.club_role`) |
+|---|---|---|
+| Scope | Plattform-weit | Nur innerhalb eines Clubs |
+| Gesetzt von | Server-Side (Edge Function) | Club-Owner via Club-Verwaltung |
+| Beispiel | TRAINER | OWNER eines bestimmten Clubs |
+| Zugriff Admin-Bereich | Nein (nur `is_platform_admin`) | Nein |
+
+### Rollen-Logik
+- Ersteller eines Clubs wird automatisch `OWNER`
+- `OWNER` kann weitere `TRAINER` einladen und deren `club_role` ändern
+- Ein `TRAINER` im Club kann auch `ATHLETE` sein (global) — die `club_role` ist unabhängig
+- `is_platform_admin` (globaler Flag) hat keinen Einfluss auf Club-Berechtigungen
 
 ---
 <!-- Sections below are added by subsequent skills -->

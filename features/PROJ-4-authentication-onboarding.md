@@ -4,6 +4,28 @@
 **Created:** 2026-03-12
 **Last Updated:** 2026-03-12
 
+## Role Architecture Decision (Phase 1 — implemented in PROJ-3)
+> **IMPORTANT:** This spec governs how role data is stored and managed. The following decisions were made before implementation to ensure future-proofness:
+
+### UserRole = "ATHLETE" | "TRAINER" — No ADMIN type
+- `UserRole` contains only `"ATHLETE"` and `"TRAINER"`
+- There is **no** `"ADMIN"` UserRole. Platform admins are TRAINER (or ATHLETE) accounts with an additional flag.
+
+### Role Storage: `app_metadata` (server-controlled)
+- `app_metadata.role: UserRole` — set by the server/Supabase function, **not** editable by the client
+- `app_metadata.is_platform_admin: boolean` — grants access to the `/admin` area
+- `user_metadata` contains only display data: `first_name`, `last_name`, `avatar_url`
+
+### Why `app_metadata` instead of `user_metadata`?
+- `user_metadata` in Supabase Auth is writable by the authenticated user via `supabase.auth.updateUser()`
+- `app_metadata` can only be written via the Supabase service-role key (server-side only)
+- Storing roles in `user_metadata` would allow any user to escalate their own privileges — a critical security vulnerability
+
+### Onboarding Role Selection
+- Step 2 of Onboarding: User selects "Ich bin Trainer" or "Ich bin Athlet"
+- This triggers a server-side Supabase Edge Function that sets `app_metadata.role` via service-role key
+- `is_platform_admin` defaults to `false` and is only set manually by the platform team
+
 ## Dependencies
 - Requires: PROJ-1 (Design System Foundation)
 - Requires: PROJ-2 (UI Component Library) — Button, Input, Alert, Card

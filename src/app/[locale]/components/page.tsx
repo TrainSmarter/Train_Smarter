@@ -162,7 +162,7 @@ export default function ComponentLibraryPage() {
                 <div className="flex flex-wrap items-center gap-3">
                   <ButtonExtended loading>Speichern...</ButtonExtended>
                   <ButtonExtended variant="danger" loading>
-                    Loeschen...
+                    L&ouml;schen...
                   </ButtonExtended>
                 </div>
                 <p className="text-caption text-muted-foreground mt-2">
@@ -177,13 +177,13 @@ export default function ComponentLibraryPage() {
                 </p>
                 <div className="flex flex-wrap items-center gap-3">
                   <ButtonExtended iconLeft={<Plus className="h-4 w-4" />}>
-                    Athlet hinzufuegen
+                    Athlet hinzuf&uuml;gen
                   </ButtonExtended>
                   <ButtonExtended
                     variant="danger"
                     iconLeft={<Trash2 className="h-4 w-4" />}
                   >
-                    Loeschen
+                    L&ouml;schen
                   </ButtonExtended>
                   <ButtonExtended
                     variant="secondary"
@@ -237,7 +237,7 @@ export default function ComponentLibraryPage() {
             <CardExtended variant="hover">
               <CardHeaderExtended
                 title="Hover"
-                subtitle="Hover fuer Lift-Effekt"
+                subtitle="Hover f&uuml;r Lift-Effekt"
                 icon={<Users className="h-5 w-5" />}
               />
               <ExtCardContent>
@@ -365,7 +365,7 @@ export default function ComponentLibraryPage() {
         <Section title="AlertExtended">
           <div className="space-y-3">
             <AlertExtended variant="success" title="Erfolgreich gespeichert">
-              Die Aenderungen wurden erfolgreich uebernommen.
+              Die &Auml;nderungen wurden erfolgreich &uuml;bernommen.
             </AlertExtended>
 
             <AlertExtended
@@ -373,11 +373,11 @@ export default function ComponentLibraryPage() {
               title="Achtung"
               action={
                 <Button variant="outline" size="sm">
-                  Ueberpruefen
+                  &Uuml;berpr&uuml;fen
                 </Button>
               }
             >
-              Einige Felder sind noch nicht ausgefuellt.
+              Einige Felder sind noch nicht ausgef&uuml;llt.
             </AlertExtended>
 
             <AlertExtended variant="error" title="Fehler beim Speichern">
@@ -392,7 +392,7 @@ export default function ComponentLibraryPage() {
                 onDismiss={() => setAlertVisible(false)}
               >
                 Du kannst Athleten auch per E-Mail einladen. Klicke auf das
-                X um diese Nachricht zu schliessen.
+                X um diese Nachricht zu schlie&szlig;en.
               </AlertExtended>
             )}
             {!alertVisible && (
@@ -435,14 +435,14 @@ export default function ComponentLibraryPage() {
                 label="Gewicht (kg)"
                 type="number"
                 placeholder="75"
-                error="Bitte gib ein gueltiges Gewicht ein"
+                error="Bitte gib ein g&uuml;ltiges Gewicht ein"
               />
 
               <FormField
                 label="Notizen"
                 multiline
                 rows={4}
-                placeholder="Freitext fuer Notizen..."
+                placeholder="Freitext f&uuml;r Notizen..."
                 helperText="Maximal 500 Zeichen"
               />
 
@@ -466,10 +466,10 @@ export default function ComponentLibraryPage() {
                 </Label>
                 <Select>
                   <SelectTrigger>
-                    <SelectValue placeholder="Sportart waehlen..." />
+                    <SelectValue placeholder="Sportart w&auml;hlen..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="fussball">Fussball</SelectItem>
+                    <SelectItem value="fussball">Fu&szlig;ball</SelectItem>
                     <SelectItem value="basketball">Basketball</SelectItem>
                     <SelectItem value="leichtathletik">Leichtathletik</SelectItem>
                     <SelectItem value="schwimmen">Schwimmen</SelectItem>
@@ -518,7 +518,7 @@ export default function ComponentLibraryPage() {
               {/* RadioGroup */}
               <div className="space-y-3">
                 <Label className="text-label text-foreground">
-                  RadioGroup - Intensitaet
+                  RadioGroup - Intensit&auml;t
                 </Label>
                 <RadioGroup defaultValue="mittel">
                   <div className="flex items-center gap-2">
@@ -607,7 +607,7 @@ export default function ComponentLibraryPage() {
         <Section title="Modal & ConfirmDialog">
           <Card>
             <CardContent className="flex flex-wrap gap-3 pt-6">
-              <Button onClick={() => setModalOpen(true)}>Modal oeffnen</Button>
+              <Button onClick={() => setModalOpen(true)}>Modal &ouml;ffnen</Button>
               <Button
                 variant="outline"
                 onClick={() => setConfirmOpen(true)}
@@ -628,7 +628,7 @@ export default function ComponentLibraryPage() {
             onOpenChange={setModalOpen}
             size="md"
             title="Neuen Athleten anlegen"
-            description="Fuelle die Pflichtfelder aus, um einen Athleten hinzuzufuegen."
+            description="F&uuml;lle die Pflichtfelder aus, um einen Athleten hinzuzuf&uuml;gen."
             footer={
               <>
                 <Button
@@ -657,8 +657,8 @@ export default function ComponentLibraryPage() {
             open={confirmOpen}
             onOpenChange={setConfirmOpen}
             variant="primary"
-            title="Aenderungen speichern?"
-            message="Moechtest du die Aenderungen am Trainingsprogramm speichern?"
+            title="&Auml;nderungen speichern?"
+            message="M&ouml;chtest du die &Auml;nderungen am Trainingsprogramm speichern?"
             confirmLabel="Speichern"
             onConfirm={() => setConfirmOpen(false)}
             onCancel={() => setConfirmOpen(false)}
@@ -668,9 +668,9 @@ export default function ComponentLibraryPage() {
             open={confirmDangerOpen}
             onOpenChange={setConfirmDangerOpen}
             variant="danger"
-            title="Athleten loeschen?"
-            message="Diese Aktion kann nicht rueckgaengig gemacht werden. Alle Trainingsdaten dieses Athleten werden geloescht."
-            confirmLabel="Endgueltig loeschen"
+            title="Athleten l&ouml;schen?"
+            message="Diese Aktion kann nicht r&uuml;ckg&auml;ngig gemacht werden. Alle Trainingsdaten dieses Athleten werden gel&ouml;scht."
+            confirmLabel="Endg&uuml;ltig l&ouml;schen"
             onConfirm={() => setConfirmDangerOpen(false)}
             onCancel={() => setConfirmDangerOpen(false)}
           />
@@ -682,14 +682,14 @@ export default function ComponentLibraryPage() {
             <CardContent className="pt-6">
               <Tabs defaultValue="overview">
                 <TabsList>
-                  <TabsTrigger value="overview">Uebersicht</TabsTrigger>
+                  <TabsTrigger value="overview">&Uuml;bersicht</TabsTrigger>
                   <TabsTrigger value="training">Training</TabsTrigger>
                   <TabsTrigger value="body">Body</TabsTrigger>
-                  <TabsTrigger value="nutrition">Ernaehrung</TabsTrigger>
+                  <TabsTrigger value="nutrition">Ern&auml;hrung</TabsTrigger>
                 </TabsList>
                 <TabsContent value="overview" className="mt-4">
                   <p className="text-body text-muted-foreground">
-                    Uebersicht-Tab mit allgemeinen Informationen zum Athleten.
+                    &Uuml;bersicht-Tab mit allgemeinen Informationen zum Athleten.
                     ARIA-Rollen sind durch Radix Tabs automatisch gesetzt.
                   </p>
                 </TabsContent>
@@ -700,12 +700,12 @@ export default function ComponentLibraryPage() {
                 </TabsContent>
                 <TabsContent value="body" className="mt-4">
                   <p className="text-body text-muted-foreground">
-                    Koerperdaten, Gewicht, Anthropometrie.
+                    K&ouml;rperdaten, Gewicht, Anthropometrie.
                   </p>
                 </TabsContent>
                 <TabsContent value="nutrition" className="mt-4">
                   <p className="text-body text-muted-foreground">
-                    Ernaehrungsdaten und Makro-Tracking.
+                    Ern&auml;hrungsdaten und Makro-Tracking.
                   </p>
                 </TabsContent>
               </Tabs>
@@ -795,7 +795,7 @@ export default function ComponentLibraryPage() {
               <EmptyState
                 icon={<Users className="h-12 w-12" />}
                 title="Keine Athleten"
-                description="Du hast noch keine Athleten hinzugefuegt. Lade deinen ersten Athleten ein."
+                description="Du hast noch keine Athleten hinzugef&uuml;gt. Lade deinen ersten Athleten ein."
                 action={
                   <ButtonExtended
                     iconLeft={<UserPlus className="h-4 w-4" />}

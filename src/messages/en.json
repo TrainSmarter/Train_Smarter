@@ -1,0 +1,65 @@
+{
+  "metadata": {
+    "title": "Train Smarter 2.0",
+    "description": "Professional training management platform for coaches and athletes"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "training": "Training",
+    "trainingCalendar": "Calendar",
+    "trainingPrograms": "Programs",
+    "trainingAnalysis": "Analysis",
+    "bodyNutrition": "Body & Nutrition",
+    "bodyMeasurements": "Body Measurements",
+    "nutrition": "Nutrition",
+    "organisation": "Organisation",
+    "myAthletes": "My Athletes",
+    "admin": "Admin",
+    "userManagement": "User Management",
+    "account": "Account",
+    "settings": "Settings"
+  },
+  "sidebar": {
+    "collapse": "Collapse",
+    "expand": "Expand",
+    "brand": "Train Smarter",
+    "version": "2.0",
+    "navigation": "Navigation",
+    "navigationAriaLabel": "Main navigation"
+  },
+  "header": {
+    "notifications": "Notifications"
+  },
+  "userMenu": {
+    "profile": "My Profile",
+    "settings": "Settings",
+    "signOut": "Sign out",
+    "appearance": "Appearance",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System",
+    "language": "Language",
+    "german": "Deutsch",
+    "english": "English"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome back! Here is your overview.",
+    "activeAthletes": "Active Athletes",
+    "activeAthletesChange": "+3 this week",
+    "runningPrograms": "Running Programs",
+    "runningProgramsChange": "2 in planning",
+    "compliance": "Compliance",
+    "complianceChange": "+5% vs. last month",
+    "todaySessions": "Today's Sessions",
+    "todaySessionsChange": "4 completed",
+    "nextSessions": "Next Training Sessions",
+    "nextSessionsDesc": "Scheduled sessions for today and tomorrow",
+    "nextSessionsEmpty": "No training sessions scheduled yet.",
+    "nextSessionsComingSoon": "Coming with PROJ-7",
+    "athleteActivity": "Athlete Activity",
+    "athleteActivityDesc": "Latest entries from your athletes",
+    "athleteActivityEmpty": "No athlete activity yet.",
+    "athleteActivityComingSoon": "Coming with PROJ-5"
+  }
+}

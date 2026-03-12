@@ -82,6 +82,38 @@ Trainer können Athleten einladen, verwalten und deren Profile einsehen. Athlete
 - Performance: Athleten-Liste lädt in < 500ms (Pagination bei > 50 Athleten)
 - Realtime: Einladungs-Annahme reflektiert sich ohne Page-Reload beim Trainer (Supabase Realtime)
 
+## Datenbankschema: trainer_athlete_connections (Phase 2)
+
+Die Trainer-Athlet-Verbindung wird in einer eigenen Tabelle mit granularen Datensichtbarkeits-Berechtigungen gespeichert. Jeder Athlet entscheidet, welche Daten sein Trainer sehen darf.
+
+```
+trainer_athlete_connections
+├── id: uuid (PK)
+├── trainer_id: uuid (FK → auth.users)
+├── athlete_id: uuid (FK → auth.users)
+├── status: "pending" | "active" | "rejected" | "disconnected"
+├── invited_at: timestamp
+├── connected_at: timestamp | null
+│
+│  — Granulare Datensichtbarkeit (Athlet kontrolliert diese) —
+├── can_see_body_data: boolean (default: true)   → Körpermaße, Gewicht
+├── can_see_nutrition: boolean (default: false)  → Ernährungstagebuch
+├── can_see_calendar: boolean (default: true)    → Trainingskalender
+│
+└── UNIQUE (trainer_id, athlete_id)
+```
+
+### Sichtbarkeits-Regeln
+- Trainer sieht Athleten-Daten **nur** wenn die entsprechende `can_see_*` Flag `true` ist
+- Athlet kann jederzeit einzelne Flags deaktivieren (Einstellungen → Datenschutz)
+- RLS-Policies prüfen diese Flags server-seitig — kein Client-seitiger Bypass möglich
+- Standard-Einstellung: Körperdaten ja, Ernährung nein, Kalender ja
+
+### Rollen-Wechsel (Athlet → Trainer)
+- Ein Nutzer kann sowohl Athlet als auch Trainer sein (future: role switch)
+- In v2.0: `app_metadata.role` ist entweder ATHLETE oder TRAINER (kein dual-role)
+- Migration zu dual-role in PROJ-11+ geplant
+
 ---
 <!-- Sections below are added by subsequent skills -->
 

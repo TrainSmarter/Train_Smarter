@@ -352,5 +352,34 @@ No other features with "Deployed" status. PROJ-2 tested in parallel (see PROJ-2 
 - **Production Ready:** YES
 - **Recommendation:** All critical and high bugs are resolved. The 2 remaining low-severity bugs are documentation/cosmetic only and do not affect functionality. Safe to deploy. Fix BUG-P1-2 and BUG-P1-5 in a documentation cleanup pass.
 
+## QA Regression Check (Round 4 -- 2026-03-12)
+
+**Tested:** 2026-03-12
+**Tester:** QA Engineer (AI)
+**Build Status:** PASS -- `npm run build` succeeds (Next.js 16.1.1 Turbopack, 3 dynamic routes + /_not-found static, 0 errors)
+**Lint Status:** PASS -- `npm run lint` returns 0 errors, 0 warnings
+**Context:** Regression check after PROJ-3 (App Shell & Navigation) implementation. Verifying PROJ-1 design system is intact.
+
+### Regression Results
+
+- [x] `tailwind.config.ts` unchanged from PROJ-1 deployment -- all color scales, spacing, shadows, border-radius, motion tokens intact
+- [x] `globals.css` additive changes only -- sidebar CSS variables added (`--sidebar-width-icon: 5.5rem`, sidebar color tokens). No PROJ-1 tokens modified.
+- [x] Font loading (Inter Variable via next/font/google) working correctly in layout.tsx
+- [x] Dark mode toggle functional (ThemeProvider + next-themes)
+- [x] Typography classes intact (display, h1-h5, body-lg, body, body-sm, label, button, caption, mono)
+- [x] Showcase page (`/[locale]`) renders correctly with all color swatches and typography examples
+- [x] Security headers now configured in next.config.ts: X-Frame-Options DENY, X-Content-Type-Options nosniff, Referrer-Policy, HSTS with includeSubDomains -- PREVIOUSLY MISSING, NOW FIXED
+- [x] No new dangerouslySetInnerHTML usage (zero instances in src/)
+- [x] No secrets exposed
+
+### Previously Open Bugs -- Status Unchanged
+
+- BUG-P1-2 (Low): Typography spec drift -- STILL OPEN (documentation only)
+- BUG-P1-5 (Low): Showcase typography descriptions wrong -- STILL OPEN (cosmetic)
+
+### Summary
+
+No regressions found. PROJ-1 Design System Foundation remains stable after PROJ-3 implementation. Security headers have been added since the last QA round (resolves the previous security finding). Production-ready status confirmed.
+
 ## Deployment
 _To be added by /deploy_

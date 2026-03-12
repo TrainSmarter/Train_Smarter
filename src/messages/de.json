@@ -1,0 +1,65 @@
+{
+  "metadata": {
+    "title": "Train Smarter 2.0",
+    "description": "Professionelle Trainingsmanagement-Plattform für Trainer und Athleten"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "training": "Training",
+    "trainingCalendar": "Kalender",
+    "trainingPrograms": "Programme",
+    "trainingAnalysis": "Auswertung",
+    "bodyNutrition": "Body & Ernährung",
+    "bodyMeasurements": "Körpermaße",
+    "nutrition": "Ernährung",
+    "organisation": "Organisation",
+    "myAthletes": "Meine Athleten",
+    "admin": "Admin",
+    "userManagement": "Benutzerverwaltung",
+    "account": "Account",
+    "settings": "Einstellungen"
+  },
+  "sidebar": {
+    "collapse": "Einklappen",
+    "expand": "Ausklappen",
+    "brand": "Train Smarter",
+    "version": "2.0",
+    "navigation": "Navigation",
+    "navigationAriaLabel": "Hauptnavigation"
+  },
+  "header": {
+    "notifications": "Benachrichtigungen"
+  },
+  "userMenu": {
+    "profile": "Mein Profil",
+    "settings": "Einstellungen",
+    "signOut": "Abmelden",
+    "appearance": "Erscheinungsbild",
+    "light": "Hell",
+    "dark": "Dunkel",
+    "system": "System",
+    "language": "Sprache",
+    "german": "Deutsch",
+    "english": "English"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Willkommen zurück! Hier ist dein Überblick.",
+    "activeAthletes": "Aktive Athleten",
+    "activeAthletesChange": "+3 diese Woche",
+    "runningPrograms": "Laufende Programme",
+    "runningProgramsChange": "2 in Planung",
+    "compliance": "Compliance",
+    "complianceChange": "+5% vs. Vormonat",
+    "todaySessions": "Heutige Einheiten",
+    "todaySessionsChange": "4 abgeschlossen",
+    "nextSessions": "Nächste Trainingseinheiten",
+    "nextSessionsDesc": "Geplante Einheiten für heute und morgen",
+    "nextSessionsEmpty": "Noch keine Trainingseinheiten geplant.",
+    "nextSessionsComingSoon": "Kommt mit PROJ-7",
+    "athleteActivity": "Athleten-Aktivität",
+    "athleteActivityDesc": "Letzte Einträge deiner Athleten",
+    "athleteActivityEmpty": "Noch keine Athleten-Aktivität vorhanden.",
+    "athleteActivityComingSoon": "Kommt mit PROJ-5"
+  }
+}

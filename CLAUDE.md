@@ -6,6 +6,7 @@
 
 - **Framework:** Next.js 16 (App Router), TypeScript
 - **Styling:** Tailwind CSS + shadcn/ui (copy-paste components)
+- **i18n:** next-intl — German (`de`, default) + English (`en`)
 - **Backend:** Supabase (PostgreSQL + Auth + Storage) - optional
 - **Deployment:** Vercel
 - **Validation:** Zod + react-hook-form
@@ -15,17 +16,30 @@
 
 ```
 src/
-  app/              Pages (Next.js App Router)
+  app/
+    [locale]/         ALL pages live here (locale-prefixed routing)
+      (protected)/    Authenticated pages
   components/
-    ui/             shadcn/ui components (NEVER recreate these)
-  hooks/            Custom React hooks
-  lib/              Utilities (supabase.ts, utils.ts)
-features/           Feature specifications (PROJ-X-name.md)
-  INDEX.md          Feature status overview
+    ui/               shadcn/ui components (NEVER recreate these)
+  hooks/              Custom React hooks
+  i18n/               next-intl config (routing.ts, request.ts, navigation.ts)
+  lib/                Utilities (supabase.ts, utils.ts)
+  messages/           Translation files (de.json, en.json)
+features/             Feature specifications (PROJ-X-name.md)
+  INDEX.md            Feature status overview
 docs/
-  PRD.md            Product Requirements Document
-  production/       Production guides (Sentry, security, performance)
+  PRD.md              Product Requirements Document
+  production/         Production guides (Sentry, security, performance)
 ```
+
+## i18n (MANDATORY — see `.claude/rules/i18n.md`)
+
+- **NEVER hardcode user-facing strings** — all text goes into `src/messages/de.json` + `src/messages/en.json`
+- **German umlauts must be correct:** ä ö ü ß — never ae, oe, ue, sz
+- **Navigation:** always import `usePathname`, `useRouter`, `Link` from `@/i18n/navigation` (NOT from `next/navigation`)
+- **Server components:** `const t = await getTranslations("namespace")`
+- **Client components:** `const t = useTranslations("namespace")`
+- **New pages** go under `src/app/[locale]/` — never at root `src/app/`
 
 ## Development Workflow
 
