@@ -12,8 +12,8 @@
 
 | ID | Feature | Status | Spec | Created |
 |----|---------|--------|------|---------|
-| PROJ-1 | Design System Foundation | In Review | [PROJ-1-design-system-foundation.md](PROJ-1-design-system-foundation.md) | 2026-03-12 |
-| PROJ-2 | UI Component Library | In Review | [PROJ-2-ui-component-library.md](PROJ-2-ui-component-library.md) | 2026-03-12 |
+| PROJ-1 | Design System Foundation | Deployed | [PROJ-1-design-system-foundation.md](PROJ-1-design-system-foundation.md) | 2026-03-12 |
+| PROJ-2 | UI Component Library | Deployed | [PROJ-2-ui-component-library.md](PROJ-2-ui-component-library.md) | 2026-03-12 |
 | PROJ-3 | App Shell & Navigation | Planned | [PROJ-3-app-shell-navigation.md](PROJ-3-app-shell-navigation.md) | 2026-03-12 |
 | PROJ-4 | Authentication & Onboarding | Planned | [PROJ-4-authentication-onboarding.md](PROJ-4-authentication-onboarding.md) | 2026-03-12 |
 | PROJ-5 | Athleten-Management | Planned | [PROJ-5-athleten-management.md](PROJ-5-athleten-management.md) | 2026-03-12 |
