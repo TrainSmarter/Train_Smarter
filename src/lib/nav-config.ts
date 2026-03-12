@@ -1,14 +1,8 @@
 import {
   LayoutDashboard,
   Dumbbell,
-  Calendar,
-  ClipboardList,
-  BarChart3,
-  Heart,
-  Apple,
-  Scale,
+  Activity,
   Users,
-  UserCog,
   Settings,
   User,
   Shield,
@@ -31,7 +25,7 @@ export interface NavSection {
   /** Key into messages.nav namespace */
   labelKey: string;
   icon: LucideIcon;
-  /** If set, the section is collapsible and this is the base path for auto-expand. */
+  /** Base path used for auto-expand detection */
   basePath?: string;
   items: NavItem[];
   /** If set, only these roles see this section. */
@@ -46,6 +40,11 @@ export type NavEntry =
 
 /**
  * Full navigation configuration.
+ *
+ * Current structure (flat top-level only — subcategories added per feature):
+ *   TRAINER:   Dashboard · Training · Feedback/Monitoring · Organisation · [Admin] · Account · Settings
+ *   ATHLETE:   Dashboard · Training · Feedback/Monitoring · Account · Settings
+ *
  * Role filtering happens at render time in NavMain.
  */
 export const navConfig: NavEntry[] = [
@@ -58,82 +57,37 @@ export const navConfig: NavEntry[] = [
     },
   },
   {
-    type: "section",
-    section: {
+    type: "item",
+    item: {
       labelKey: "training",
       icon: Dumbbell,
-      basePath: "/training",
-      items: [
-        {
-          labelKey: "trainingCalendar",
-          icon: Calendar,
-          path: "/training/kalender",
-        },
-        {
-          labelKey: "trainingPrograms",
-          icon: ClipboardList,
-          path: "/training/programme",
-          allowedRoles: ["TRAINER"],
-        },
-        {
-          labelKey: "trainingAnalysis",
-          icon: BarChart3,
-          path: "/training/auswertung",
-          allowedRoles: ["TRAINER"],
-        },
-      ],
+      path: "/training",
     },
   },
   {
-    type: "section",
-    section: {
-      labelKey: "bodyNutrition",
-      icon: Heart,
-      basePath: "/body",
-      items: [
-        {
-          labelKey: "bodyMeasurements",
-          icon: Scale,
-          path: "/body/koerpermasze",
-        },
-        {
-          labelKey: "nutrition",
-          icon: Apple,
-          path: "/body/ernaehrung",
-        },
-      ],
+    type: "item",
+    item: {
+      labelKey: "feedbackMonitoring",
+      icon: Activity,
+      path: "/feedback",
     },
   },
   {
-    type: "section",
-    section: {
+    type: "item",
+    item: {
       labelKey: "organisation",
       icon: Users,
-      basePath: "/organisation",
+      path: "/organisation",
       allowedRoles: ["TRAINER"],
-      items: [
-        {
-          labelKey: "myAthletes",
-          icon: UserCog,
-          path: "/organisation/athleten",
-        },
-      ],
     },
   },
   {
-    type: "section",
-    section: {
+    type: "item",
+    item: {
       labelKey: "admin",
       icon: Shield,
-      basePath: "/admin",
+      path: "/admin",
       requiresPlatformAdmin: true,
-      items: [
-        {
-          labelKey: "userManagement",
-          icon: Users,
-          path: "/admin/benutzer",
-        },
-      ],
     },
   },
   {

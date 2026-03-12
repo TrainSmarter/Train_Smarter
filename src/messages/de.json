@@ -6,16 +6,9 @@
   "nav": {
     "dashboard": "Dashboard",
     "training": "Training",
-    "trainingCalendar": "Kalender",
-    "trainingPrograms": "Programme",
-    "trainingAnalysis": "Auswertung",
-    "bodyNutrition": "Body & Ernährung",
-    "bodyMeasurements": "Körpermaße",
-    "nutrition": "Ernährung",
+    "feedbackMonitoring": "Feedback & Monitoring",
     "organisation": "Organisation",
-    "myAthletes": "Meine Athleten",
     "admin": "Admin",
-    "userManagement": "Benutzerverwaltung",
     "account": "Account",
     "settings": "Einstellungen"
   },
