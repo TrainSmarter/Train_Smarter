@@ -1,6 +1,6 @@
 # PROJ-3: App Shell & Navigation
 
-## Status: In Review
+## Status: Deployed
 **Created:** 2026-03-12
 **Last Updated:** 2026-03-12
 
@@ -412,4 +412,9 @@ Code-level review (no browser runtime). All patterns used are well-supported:
 - **Recommendation:** All actionable bugs fixed. BUG-4 is a deliberate design choice. BUG-6 and BUG-7 are PROJ-4 scope. Ready to deploy.
 
 ## Deployment
-_To be added by /deploy_
+
+**Deployed:** 2026-03-12
+**Production URL:** https://train-smarter-2.vercel.app
+**Inspect:** https://vercel.com/lukas-projects-f87e929f/train-smarter-2
+**Git Tag:** v1.3.0-PROJ-3
+**Includes:** PROJ-1 (Design System), PROJ-2 (UI Components), PROJ-3 (App Shell & Navigation)
