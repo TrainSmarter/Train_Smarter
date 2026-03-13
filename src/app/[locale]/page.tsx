@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -49,7 +50,9 @@ function Section({
 
 /* -- Page --------------------------------------------------------- */
 
-export default function DesignSystemPage() {
+export default async function DesignSystemPage() {
+  const t = await getTranslations("showcase.ds");
+
   return (
     <>
       <ShowcaseNav />
@@ -57,16 +60,15 @@ export default function DesignSystemPage() {
         {/* Header */}
         <div className="space-y-2">
           <h1 className="text-h1 text-foreground">
-            Train Smarter 2.0 &mdash; Design System
+            {t("title")}
           </h1>
           <p className="text-body-lg text-muted-foreground">
-            PROJ-1: Design System Foundation. Alle Tokens, Farben, Typografie
-            und Komponenten auf einen Blick.
+            {t("subtitle")}
           </p>
         </div>
 
         {/* -- Typography ------------------------------------------ */}
-        <Section title="Typografie (Inter Variable)">
+        <Section title={t("sTypography")}>
           <Card>
             <CardContent className="space-y-4 pt-6">
               <p className="text-h1">H1 &mdash; 32px / Bold / -0.02em</p>
@@ -89,7 +91,7 @@ export default function DesignSystemPage() {
         </Section>
 
         {/* -- Primary (Teal) -------------------------------------- */}
-        <Section title="Primary (Teal)">
+        <Section title={t("sPrimaryColor")}>
           <div className="flex flex-wrap gap-3">
             <Swatch name="50" className="bg-primary-50" />
             <Swatch name="100" className="bg-primary-100" />
@@ -105,7 +107,7 @@ export default function DesignSystemPage() {
         </Section>
 
         {/* -- Secondary (Violet) ---------------------------------- */}
-        <Section title="Secondary (Violet)">
+        <Section title={t("sSecondaryColor")}>
           <div className="flex flex-wrap gap-3">
             <Swatch name="50" className="bg-violet-50" />
             <Swatch name="100" className="bg-violet-100" />
@@ -121,7 +123,7 @@ export default function DesignSystemPage() {
         </Section>
 
         {/* -- Gray Scale ------------------------------------------ */}
-        <Section title="Gray (Warm Slate)">
+        <Section title={t("sGrayColor")}>
           <div className="flex flex-wrap gap-3">
             <Swatch name="50" className="bg-gray-50" />
             <Swatch name="100" className="bg-gray-100" />
@@ -137,7 +139,7 @@ export default function DesignSystemPage() {
         </Section>
 
         {/* -- Semantic Colors ------------------------------------- */}
-        <Section title="Semantische Farben">
+        <Section title={t("sSemanticColors")}>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             <Card>
               <CardHeader className="pb-2">
@@ -183,7 +185,7 @@ export default function DesignSystemPage() {
         </Section>
 
         {/* -- shadcn/ui Semantic Tokens --------------------------- */}
-        <Section title="shadcn/ui Semantic Tokens">
+        <Section title={t("sShadcnTokens")}>
           <div className="flex flex-wrap gap-3">
             <Swatch name="background" className="bg-background" />
             <Swatch name="foreground" className="bg-foreground" />
@@ -197,12 +199,12 @@ export default function DesignSystemPage() {
             <Swatch name="card" className="bg-card" />
           </div>
           <p className="text-caption text-muted-foreground mt-2">
-            Tipp: Dark Mode umschalten um die Warm-Slate Dark-Surfaces zu sehen.
+            {t("darkModeTip")}
           </p>
         </Section>
 
         {/* -- Buttons --------------------------------------------- */}
-        <Section title="Buttons (shadcn/ui)">
+        <Section title={t("sButtons")}>
           <Card>
             <CardContent className="flex flex-wrap items-center gap-3 pt-6">
               <Button>Primary (Teal)</Button>
@@ -219,7 +221,7 @@ export default function DesignSystemPage() {
         </Section>
 
         {/* -- Badges ---------------------------------------------- */}
-        <Section title="Badges">
+        <Section title={t("sBadges")}>
           <div className="flex flex-wrap gap-2">
             <Badge>Default (Primary)</Badge>
             <Badge variant="secondary">Secondary</Badge>
@@ -235,7 +237,7 @@ export default function DesignSystemPage() {
         </Section>
 
         {/* -- Form Elements --------------------------------------- */}
-        <Section title="Form Elements">
+        <Section title={t("sFormElements")}>
           <Card>
             <CardContent className="max-w-sm space-y-4 pt-6">
               <div className="space-y-2">
@@ -264,7 +266,7 @@ export default function DesignSystemPage() {
         </Section>
 
         {/* -- Spacing Grid ---------------------------------------- */}
-        <Section title="Spacing (8px Grid)">
+        <Section title={t("sSpacing")}>
           <div className="flex items-end gap-4">
             {[
               { label: "4px (xs)", size: "h-1 w-1" },
@@ -289,7 +291,7 @@ export default function DesignSystemPage() {
         </Section>
 
         {/* -- Border Radius --------------------------------------- */}
-        <Section title="Border Radius">
+        <Section title={t("sBorderRadius")}>
           <div className="flex flex-wrap items-center gap-4">
             {[
               { label: "xs (4px)", radius: "rounded-xs" },
@@ -313,7 +315,7 @@ export default function DesignSystemPage() {
         </Section>
 
         {/* -- Shadows --------------------------------------------- */}
-        <Section title="Schatten">
+        <Section title={t("sShadows")}>
           <div className="flex flex-wrap items-center gap-6">
             {["shadow-xs", "shadow-sm", "shadow-md", "shadow-lg", "shadow-xl"].map(
               (shadow) => (
@@ -332,7 +334,7 @@ export default function DesignSystemPage() {
         </Section>
 
         {/* -- Motion Tokens --------------------------------------- */}
-        <Section title="Motion Tokens">
+        <Section title={t("sMotionTokens")}>
           <Card>
             <CardContent className="space-y-4 pt-6">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -359,7 +361,7 @@ export default function DesignSystemPage() {
         </Section>
 
         {/* -- Cards Demo ------------------------------------------ */}
-        <Section title="Card Komposition">
+        <Section title={t("sCardComposition")}>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <Card>
               <CardHeader>
@@ -403,7 +405,7 @@ export default function DesignSystemPage() {
         {/* Footer */}
         <footer className="border-t border-border pt-8 text-center">
           <p className="text-body-sm text-muted-foreground">
-            Train Smarter 2.0 &mdash; Design System Foundation (PROJ-1)
+            {t("footer")}
           </p>
         </footer>
       </main>

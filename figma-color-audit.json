@@ -1,0 +1,785 @@
+[
+  {
+    "nodeId": "2:7",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🎨 Design Tokens — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7280",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "2:10",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🎨 Design Tokens — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7280",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "2:31",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🎨 Design Tokens — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7280",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "2:53",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🎨 Design Tokens — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7280",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "2:64",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🎨 Design Tokens — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7280",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "2:65",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🎨 Design Tokens — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7280",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "2:75",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🎨 Design Tokens — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7280",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "2:105",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🎨 Design Tokens — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7280",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "2:119",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🎨 Design Tokens — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#e05540",
+    "replacement": "#0D9488 (Teal)"
+  },
+  {
+    "nodeId": "2:120",
+    "nodeName": "body-sm",
+    "nodeType": "TEXT",
+    "frameName": "🎨 Design Tokens — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7280",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "2:124",
+    "nodeName": "button",
+    "nodeType": "TEXT",
+    "frameName": "🎨 Design Tokens — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#e05540",
+    "replacement": "#0D9488 (Teal)"
+  },
+  {
+    "nodeId": "2:126",
+    "nodeName": "caption",
+    "nodeType": "TEXT",
+    "frameName": "🎨 Design Tokens — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7280",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "2:129",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🎨 Design Tokens — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7280",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "2:130",
+    "nodeName": "sp-4",
+    "nodeType": "FRAME",
+    "frameName": "🎨 Design Tokens — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#e05540",
+    "replacement": "#0D9488 (Teal)"
+  },
+  {
+    "nodeId": "2:131",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🎨 Design Tokens — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#e05540",
+    "replacement": "#0D9488 (Teal)"
+  },
+  {
+    "nodeId": "2:133",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🎨 Design Tokens — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7280",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "2:134",
+    "nodeName": "radius-xs (4px)",
+    "nodeType": "FRAME",
+    "frameName": "🎨 Design Tokens — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#e05540",
+    "replacement": "#0D9488 (Teal)"
+  },
+  {
+    "nodeId": "2:135",
+    "nodeName": "radius-sm (6px)",
+    "nodeType": "FRAME",
+    "frameName": "🎨 Design Tokens — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#e05540",
+    "replacement": "#0D9488 (Teal)"
+  },
+  {
+    "nodeId": "2:136",
+    "nodeName": "radius-md (8px)",
+    "nodeType": "FRAME",
+    "frameName": "🎨 Design Tokens — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#e05540",
+    "replacement": "#0D9488 (Teal)"
+  },
+  {
+    "nodeId": "2:137",
+    "nodeName": "radius-lg (12px)",
+    "nodeType": "FRAME",
+    "frameName": "🎨 Design Tokens — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#e05540",
+    "replacement": "#0D9488 (Teal)"
+  },
+  {
+    "nodeId": "2:138",
+    "nodeName": "radius-xl (16px)",
+    "nodeType": "FRAME",
+    "frameName": "🎨 Design Tokens — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#e05540",
+    "replacement": "#0D9488 (Teal)"
+  },
+  {
+    "nodeId": "2:139",
+    "nodeName": "radius-2xl (24px)",
+    "nodeType": "FRAME",
+    "frameName": "🎨 Design Tokens — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#e05540",
+    "replacement": "#0D9488 (Teal)"
+  },
+  {
+    "nodeId": "2:140",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🎨 Design Tokens — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7280",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "2:142",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🎨 Design Tokens — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7280",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "2:148",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🎨 Design Tokens — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7280",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "2:149",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🎨 Design Tokens — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7280",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "2:150",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🎨 Design Tokens — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7280",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "2:146",
+    "nodeName": "shadow-lg",
+    "nodeType": "FRAME",
+    "frameName": "🎨 Design Tokens — Train Smarter",
+    "fillOrStroke": "stroke",
+    "currentHex": "#6b7280",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "2:151",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🎨 Design Tokens — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7280",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "2:152",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🎨 Design Tokens — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7280",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:3",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🎨 Design Tokens — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7380",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:6",
+    "nodeName": "duration-fill-fast",
+    "nodeType": "RECTANGLE",
+    "frameName": "🎨 Design Tokens — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#e05540",
+    "replacement": "#0D9488 (Teal)"
+  },
+  {
+    "nodeId": "6:7",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🎨 Design Tokens — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#636b81",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:9",
+    "nodeName": "duration-fill-base",
+    "nodeType": "RECTANGLE",
+    "frameName": "🎨 Design Tokens — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#e05540",
+    "replacement": "#0D9488 (Teal)"
+  },
+  {
+    "nodeId": "6:10",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🎨 Design Tokens — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#636b81",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:11",
+    "nodeName": "duration-fill-slow",
+    "nodeType": "RECTANGLE",
+    "frameName": "🎨 Design Tokens — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#e05540",
+    "replacement": "#0D9488 (Teal)"
+  },
+  {
+    "nodeId": "6:12",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🎨 Design Tokens — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#636b81",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:15",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🎨 Design Tokens — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#312e81",
+    "replacement": "#4C1D95 (Violet-900) or #134E4A (Teal-900) — headers=teal, text/badges=violet"
+  },
+  {
+    "nodeId": "6:16",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🎨 Design Tokens — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#636b81",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:17",
+    "nodeName": "easing-spring",
+    "nodeType": "FRAME",
+    "frameName": "🎨 Design Tokens — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#eef2ff",
+    "replacement": "#E0F2FE (Sky-100) or #EDE9FE (Violet-100) — info=sky, secondary=violet"
+  },
+  {
+    "nodeId": "6:18",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🎨 Design Tokens — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#e05540",
+    "replacement": "#0D9488 (Teal)"
+  },
+  {
+    "nodeId": "6:19",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🎨 Design Tokens — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#636b81",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:21",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🎨 Design Tokens — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#312e81",
+    "replacement": "#4C1D95 (Violet-900) or #134E4A (Teal-900) — headers=teal, text/badges=violet"
+  },
+  {
+    "nodeId": "6:27",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7380",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:31",
+    "nodeName": "btn-ghost",
+    "nodeType": "FRAME",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#f2f3f7",
+    "replacement": "#F1F5F9 (Slate-100)"
+  },
+  {
+    "nodeId": "6:38",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#636b81",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:32",
+    "nodeName": "btn-outline",
+    "nodeType": "FRAME",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "stroke",
+    "currentHex": "#cdd0e8",
+    "replacement": "#CBD5E1 (Slate-300)"
+  },
+  {
+    "nodeId": "6:43",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7380",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:64",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7380",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:83",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7380",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:87",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7380",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:88",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#636b81",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:90",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7380",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:91",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7380",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:94",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#636b81",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:95",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7380",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:99",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#636b81",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:103",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7380",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:121",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7380",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:124",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7380",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:129",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7380",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:134",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7380",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:139",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7380",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:144",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7380",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:147",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7380",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:150",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7380",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:154",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7380",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:155",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7380",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:156",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7380",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:161",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7380",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:172",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7380",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:173",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#999eb2",
+    "replacement": "#94A3B8 (Slate-400)"
+  },
+  {
+    "nodeId": "6:174",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7380",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:175",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7380",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:178",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7380",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:181",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7380",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:184",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7380",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:187",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7380",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:190",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7380",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:191",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7380",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:196",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7380",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:201",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7380",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:202",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7380",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:203",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7380",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:204",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7380",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:206",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7380",
+    "replacement": "#64748B (Slate-500)"
+  },
+  {
+    "nodeId": "6:209",
+    "nodeName": "Text",
+    "nodeType": "TEXT",
+    "frameName": "🧩 Component Library — Train Smarter",
+    "fillOrStroke": "fill",
+    "currentHex": "#6b7380",
+    "replacement": "#64748B (Slate-500)"
+  }
+]

@@ -103,7 +103,7 @@ export const navConfig: NavEntry[] = [
     item: {
       labelKey: "settings",
       icon: Settings,
-      path: "/account/einstellungen",
+      path: "/account/settings",
     },
   },
 ];

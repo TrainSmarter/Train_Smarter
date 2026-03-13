@@ -1,7 +1,7 @@
 # Product Requirements Document
 
 ## Vision
-Train Smarter 2.0 ist ein kompletter Neuaufbau einer professionellen Trainingsmanagement-Plattform für Athletiktrainer und Athleten. Die App ermöglicht es Trainern, ihre Athleten zu verwalten, Trainingsprogramme auf allen Planungsebenen zu gestalten (Mehrjahresplan bis Tagesplanung), Fortschritt zu analysieren, Anthropometrische Parameter zu dokumentieren und das Monitoring von subjektiven Belastungsparametern und Ernährung — alles auf einer modernen, skalierbaren Plattform.
+Train Smarter ist eine professionelle Trainingsmanagement-Plattform für Athletiktrainer und Athleten. Die App ermöglicht es Trainern, ihre Athleten zu verwalten, Trainingsprogramme auf allen Planungsebenen zu gestalten (Mehrjahresplan bis Tagesplanung), Fortschritt zu analysieren, Anthropometrische Parameter zu dokumentieren und das Monitoring von subjektiven Belastungsparametern und Ernährung — alles auf einer modernen, skalierbaren Plattform.
 
 **Alleinstellungsmerkmal:** Die vollständige Periodisierungshierarchie — von Mehrjahresplänen bis zur einzelnen Trainingseinheit — in einem einzigen Tool. Kein Konkurrent (TrainingPeaks, Trainerize, TeamBuildr, CoachAccountable) bietet diese Planungstiefe kombiniert mit modernem UX.
 
@@ -36,6 +36,12 @@ Train Smarter 2.0 ist ein kompletter Neuaufbau einer professionellen Trainingsma
 | P1 | PROJ-8: Trainingskalender (Sub-View im Workspace) | Planned |
 | P2 | PROJ-9: Club-Verwaltung | Planned |
 | P2 | PROJ-10: Admin-Bereich | Planned |
+| P0 (MVP) | PROJ-11: DSGVO-Compliance & Datenschutz | Planned |
+| P1 | PROJ-12: Übungsbibliothek | Planned |
+| P0 (MVP) | PROJ-13: E-Mail & Transaktions-Benachrichtigungen | Planned |
+| P1 | PROJ-14: In-App Notifications & Einstellungen | Planned |
+| P1 | PROJ-15: Globale Suche | Planned |
+| P0 (MVP) | PROJ-16: Test-Strategie & Qualitätssicherung | Planned |
 
 ## Success Metrics
 - Trainer kann innerhalb von 5 Minuten nach Registrierung seinen ersten Athleten einladen
@@ -52,9 +58,9 @@ Train Smarter 2.0 ist ein kompletter Neuaufbau einer professionellen Trainingsma
 
 ## Non-Goals
 - Native Mobile App (iOS/Android) — nur Web (responsive)
-- Zahlungsabwicklung / Abonnement-Management in v2.0
-- KI-basierte Trainingsempfehlungen in v2.0
-- Video-Upload für Übungsdemonstration in v2.0
+- Zahlungsabwicklung / Abonnement-Management
+- KI-basierte Trainingsempfehlungen
+- Video-Upload für Übungsdemonstration
 - Real-Time Live-Tracking während einer Trainingseinheit
 - Figma Code Connect publish (erfordert Organization-Plan — Infrastruktur vorbereitet, aktivierbar per `npm run figma:publish`)
 

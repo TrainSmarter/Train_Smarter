@@ -82,12 +82,20 @@ Komplettes Authentifizierungssystem mit Supabase Auth: Registrierung, Login, Pas
 
 ### Onboarding Wizard
 - [ ] Wird nur angezeigt wenn `profile.onboarding_completed = false`
-- [ ] Step 1: Name (vorausgefüllt aus Registrierung), Geburtsdatum, Profilbild (optional, Supabase Storage Upload)
-- [ ] Step 2: Rollenauswahl — "Ich bin Trainer" oder "Ich bin Athlet"
-- [ ] Step 3 (Trainer): Optionale Einladung eines ersten Athleten per E-Mail
-- [ ] Step 3 (Athlet): Optionaler Trainer-Einladungscode eingeben
-- [ ] "Überspringen" in jedem Schritt möglich — setzt `onboarding_completed = true`
+- [ ] **Step 1 — DSGVO-Einwilligungen** (Pflicht, nicht überspringbar):
+  - Pflicht-Checkbox: „Ich akzeptiere die AGB und Datenschutzerklärung" (Links öffnen in neuem Tab, kein Pre-Check)
+  - Opt-in: „Ich erlaube die Verarbeitung meiner Körperdaten (Gewicht, Maße, Schlaf, Wellness-Score)" — standardmäßig **nicht** angehakt
+  - Opt-in: „Ich erlaube die Verarbeitung meines Ernährungstagebuchs" — standardmäßig **nicht** angehakt
+  - Ohne Pflicht-Checkbox: „Weiter"-Button deaktiviert
+  - Einwilligungen werden in `user_consents`-Tabelle gespeichert (Datenmodell → PROJ-11)
+- [ ] Step 2: Name (vorausgefüllt aus Registrierung), Geburtsdatum, Profilbild (optional, Supabase Storage Upload)
+- [ ] Step 3: Rollenauswahl — "Ich bin Trainer" oder "Ich bin Athlet"
+- [ ] Step 4 (Trainer): Optionale Einladung eines ersten Athleten per E-Mail
+- [ ] Step 4 (Athlet): Optionaler Trainer-Einladungscode eingeben
+- [ ] „Überspringen" ab Step 2 möglich — setzt `onboarding_completed = true`
 - [ ] Nach Abschluss: Redirect zu `/dashboard`
+
+> **Experten-Entscheidung:** Consent-Step gehört in PROJ-4 (Onboarding-UI), nicht nur in PROJ-11. Begründung: Ein Entwickler der PROJ-4 implementiert, muss alle Wizard-Steps kennen — inkl. Consent. PROJ-11 bleibt die Quelle der Wahrheit für das Datenmodell (`user_consents`-Tabelle) und die Datenschutz-Einstellungsseite. PROJ-4 implementiert den Wizard-Step, referenziert PROJ-11 für die Speicherlogik.
 
 ## Edge Cases
 - E-Mail bereits registriert bei Registrierung → Fehlermeldung ohne zu verraten ob Account existiert
@@ -100,6 +108,8 @@ Komplettes Authentifizierungssystem mit Supabase Auth: Registrierung, Login, Pas
 - Security: Passwörter werden ausschließlich über Supabase Auth gehandhabt (kein eigenes Hashing)
 - Security: CSRF-Schutz durch Supabase JWT-Tokens
 - Security: Rate-Limiting auf Auth-Endpunkten (Supabase built-in)
+- Security: Vorname, Nachname und alle Freitext-Felder im Onboarding werden server-seitig HTML-escaped — verhindert XSS falls Daten später in E-Mail-Templates oder anderen Kontexten gerendert werden
+- Security: `user_metadata` (first_name, last_name) darf keine HTML-Tags enthalten — Zod-Schema validiert: nur Buchstaben, Leerzeichen, Bindestriche, max. 100 Zeichen
 - Validation: Zod-Schemas für alle Formulare, serverseitige Validierung via Next.js Route Handlers
 - Performance: Auth-Check per Supabase `getSession()` im Server Component (kein Client-Waterfall)
 

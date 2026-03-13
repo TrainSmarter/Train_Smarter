@@ -25,7 +25,7 @@ Brand redesigned from Orange+Navy+Poppins → Teal+Violet+Inter. Complete brand 
 - `tailwind.config.ts` fully rewritten: primary-50..900 (Orange), navy-50..900 (Indigo), success/warning/error/info semantic colors, custom border-radius (xs-2xl), box-shadow (xs-xl), Poppins as font-sans
 - `src/app/globals.css` fully rewritten: 8 @font-face declarations (Poppins 400/500/600/700 latin + latin-ext), CSS custom properties for light + dark mode with Orange as --primary (HSL 9 71% 57%), dark sidebar with navy accent, typography utility classes (text-h1 through text-caption)
 - `public/fonts/` created with 8 Poppins WOFF2 files (all under 10KB each, font-display: swap)
-- `src/app/layout.tsx` updated: lang="de", suppressHydrationWarning for dark mode, metadata for Train Smarter 2.0
+- `src/app/layout.tsx` updated: lang="de", suppressHydrationWarning for dark mode, metadata for Train Smarter
 - `src/app/page.tsx` replaced with design system showcase page showing all tokens, typography, colors, components
 - @fontsource/poppins installed as devDependency (used only for WOFF2 file extraction)
 - Figma tokens are a manual step (not code) -- to be completed separately
@@ -153,7 +153,7 @@ Das Projekt enthält bereits shadcn/ui mit neutralen Default-Farben. Diese werde
 ```
 Design System Foundation (nur Frontend, kein Backend)
 │
-├── FIGMA — "Train Smarter 2.0 — Design System"
+├── FIGMA — "Train Smarter — Design System"
 │   ├── Seite: 🎨 Design Tokens
 │   │   ├── Variables: Color/Primary (Orange-Skala, 11 Stufen)
 │   │   ├── Variables: Color/Navy (Indigo-Skala, 11 Stufen)
@@ -380,6 +380,208 @@ No other features with "Deployed" status. PROJ-2 tested in parallel (see PROJ-2 
 ### Summary
 
 No regressions found. PROJ-1 Design System Foundation remains stable after PROJ-3 implementation. Security headers have been added since the last QA round (resolves the previous security finding). Production-ready status confirmed.
+
+## QA Test Results (Round 5 -- 2026-03-13)
+
+**Tested:** 2026-03-13
+**Tester:** QA Engineer (AI)
+**Build Status:** PASS -- `npm run build` succeeds (Next.js 16.1.1 Turbopack, 3 dynamic routes + /_not-found static, 0 errors)
+**Lint Status:** PASS -- `npm run lint` returns 0 errors, 0 warnings
+**Context:** Full re-test of PROJ-1 after post-deployment changes (commits 681bd19, c31b152, 29c332d, d70d7ee). Checking for regressions and spec drift.
+
+---
+
+### Acceptance Criteria Status
+
+#### Figma Design Tokens (Manual -- Not Testable by Code QA)
+- [ ] SKIP: All 9 Figma acceptance criteria remain outside scope of code QA
+
+#### AC: Code -- Tailwind & CSS
+
+- [x] `tailwind.config.ts` contains all color scales -- PASS. Primary (Teal) 50-950, Gray (Warm Slate) 50-950, Violet 50-950. Semantic colors, event.*, avatar.*, chart (8 series). All intact.
+- [x] `tailwind.config.ts` contains custom border-radius, shadow, spacing extensions -- PASS. Unchanged from last round.
+- [x] `tailwind.config.ts` contains Inter Variable as `fontFamily.sans` -- PASS.
+- [x] `tailwind.config.ts` activates `darkMode: ["class"]` -- PASS (line 5).
+- [x] `globals.css` defines CSS Custom Properties for all color tokens (light + dark) -- PASS. All tokens intact.
+- [x] `globals.css` contains Typography classes -- PASS. 13 classes present. BUG-P1-2 (spec drift) still open.
+- [x] Font loaded via `next/font/google` (Inter Variable) with `display: "swap"` -- PASS. Note: `subsets` changed from `["latin", "latin-ext"]` to `["latin"]` only (commit c31b152). See BUG-P1-6 below.
+- [x] Dark Mode color mapping via CSS Custom Properties -- PASS. 4-level surface system intact.
+
+### Edge Cases Status
+
+- [x] EC-1: Font fallback chain intact -- PASS
+- [x] EC-2: Dark mode CSS vars not overriding shadcn/ui -- PASS
+- [x] EC-3: Tailwind Config compatible with Next.js 16 -- PASS (build succeeds)
+- [x] EC-4: Font loading LCP impact -- PASS (next/font optimization)
+- [x] EC-5: tailwindcss-animate plugin -- PASS
+- [x] EC-6: Dark mode toggle -- PASS
+- [x] EC-7: WCAG AA contrast -- PASS
+- [x] EC-8: Showcase page color references -- PASS (no navy-* anywhere)
+
+### Cross-Browser Testing
+
+- [x] Chrome 100+: PASS (standard CSS features)
+- [x] Firefox 100+: PASS
+- [x] Safari 16+: PASS (backdrop-filter conditional graceful degradation)
+
+### Responsive Testing
+
+- [x] 375px (Mobile): PASS
+- [x] 768px (Tablet): PASS
+- [x] 1440px (Desktop): PASS
+
+### Security Audit Results
+
+- [x] No secrets exposed
+- [x] No API endpoints (static pages only)
+- [x] No user input processing (demo input has no handlers that transmit data)
+- [x] Font loading: Inter via next/font (self-hosted after build, no CDN call at runtime)
+- [x] No dangerouslySetInnerHTML (zero instances in src/)
+- [x] Security headers configured in next.config.ts: X-Frame-Options DENY, X-Content-Type-Options nosniff, Referrer-Policy origin-when-cross-origin, HSTS with includeSubDomains -- PASS
+
+### Bugs Found
+
+#### BUG-P1-2: STILL OPEN -- Typography spec drift after v2 redesign
+- **Severity:** Low
+- **Status:** No change from Round 3. Documentation-only, does not affect runtime.
+
+#### BUG-P1-5: STILL OPEN -- Showcase typography descriptions wrong
+- **Severity:** Low
+- **Status:** No change from Round 3. Cosmetic/misleading showcase labels.
+
+#### BUG-P1-6: NEW -- latin-ext subset removed from Inter font
+- **Severity:** Low
+- **Component:** `src/app/[locale]/layout.tsx` line 10
+- **Steps to Reproduce:**
+  1. Compare current code: `subsets: ["latin"]`
+  2. Previous code had `subsets: ["latin", "latin-ext"]`
+  3. Commit c31b152 removed `latin-ext` to fix font preload warnings
+  4. German umlauts (a, o, u, ss) ARE in the latin subset so no functional impact
+  5. However, some extended Latin characters (e.g. Polish, Vietnamese athlete names) may render with fallback font
+- **Root Cause:** Font preload warning fix was too aggressive in removing the subset
+- **Priority:** Nice to have -- only affects names with extended Latin characters. May matter for international athlete names in PROJ-5.
+
+#### BUG-P1-7: NEW -- Showcase page has hardcoded German strings (i18n violation)
+- **Severity:** Medium
+- **Component:** `src/app/[locale]/page.tsx`
+- **Steps to Reproduce:**
+  1. Open http://localhost:3000/en (English locale)
+  2. Observe all showcase text is still in German: "Typografie", "Semantische Farben", "Athleten", "Programme", "Platzhaltertext...", etc.
+  3. Expected: Text should be in English on /en route
+  4. Actual: All user-facing strings are hardcoded in German, not using `useTranslations`/`getTranslations`
+- **Root Cause:** Showcase page was created before i18n was implemented and was never migrated
+- **Note:** This is technically a MANDATORY i18n rule violation per `.claude/rules/i18n.md`: "NEVER hardcode user-facing strings"
+- **Priority:** Fix in next sprint -- showcase is a developer-facing page, not end-user-facing, so impact is limited
+
+### Regression Testing
+
+- [x] Build passes with 0 errors
+- [x] All Tailwind config tokens unchanged from PROJ-1 deployment
+- [x] globals.css: sidebar-width-icon value changed from 5.5rem to 3.5rem (PROJ-3 post-deployment fix) -- no impact on PROJ-1 tokens
+- [x] No regressions on PROJ-1 design system tokens
+
+### Summary
+
+- **Acceptance Criteria (Code, v2):** 8/8 passed
+- **Acceptance Criteria (Figma):** 9/9 skipped (manual verification)
+- **Edge Cases:** 8/8 passed
+- **Open Bugs Total:** 4 (0 critical, 0 high, 1 medium, 3 low)
+  - BUG-P1-2 (Low): Typography spec drift in feature file
+  - BUG-P1-5 (Low): Showcase typography descriptions wrong
+  - BUG-P1-6 (Low): latin-ext subset removed
+  - BUG-P1-7 (Medium): Showcase page hardcoded German strings (i18n violation)
+- **Security:** PASS
+- **Production Ready:** YES (no critical or high bugs)
+
+## QA Test Results (Round 6 -- 2026-03-13)
+
+**Tested:** 2026-03-13
+**Tester:** QA Engineer (AI)
+**Build Status:** PASS -- `npm run build` succeeds (Next.js 16.1.1 Turbopack, 3 dynamic + 1 static routes, 0 errors)
+**Lint Status:** PASS -- `npm run lint` returns 0 errors, 0 warnings
+**Context:** Full re-test of PROJ-1 after latest commits (a893084..HEAD). Verifying all tokens, CSS variables, font loading, dark mode, and security.
+
+---
+
+### Acceptance Criteria Status
+
+#### Figma Design Tokens (Manual -- Not Testable by Code QA)
+- [ ] SKIP: All 9 Figma acceptance criteria remain outside scope of code QA
+
+#### AC: Code -- Tailwind & CSS
+
+- [x] `tailwind.config.ts` contains all color scales -- PASS. Primary (Teal) 50-950, Gray (Warm Slate) 50-950, Violet 50-950. Semantic colors (success, warning, error, info). Event, avatar, chart tokens. All intact.
+- [x] `tailwind.config.ts` contains custom border-radius (xs-2xl), shadow (xs-xl + glow-sm/glow-md), spacing (8px grid + WCAG 2.5.5 touch target 44px) -- PASS.
+- [x] `tailwind.config.ts` contains Inter Variable as `fontFamily.sans` -- PASS.
+- [x] `tailwind.config.ts` activates `darkMode: ["class"]` -- PASS (line 5).
+- [x] `globals.css` defines CSS Custom Properties for all color tokens (light + dark) -- PASS. --primary = HSL 175 84% 32% (Teal). All shadcn/ui semantic tokens, chart-1..8, sidebar-*.
+- [x] `globals.css` contains Typography classes -- PASS. 13 classes present (display, h1-h5, body-lg, body, body-sm, label, button, caption, mono).
+- [x] Font loaded via `next/font/google` (Inter Variable) with `display: "swap"` and `subsets: ["latin", "latin-ext"]` -- PASS. latin-ext has been restored (was removed in c31b152, now back).
+- [x] Dark Mode color mapping via CSS Custom Properties -- PASS. 4-level surface system intact.
+
+### Edge Cases Status
+
+- [x] EC-1: Font fallback chain intact (var(--font-inter), Inter, system-ui, etc.) -- PASS
+- [x] EC-2: Dark mode CSS vars not overriding shadcn/ui -- PASS
+- [x] EC-3: Tailwind Config compatible with Next.js 16 -- PASS (build succeeds)
+- [x] EC-4: Font loading LCP impact -- PASS (next/font optimization)
+- [x] EC-5: tailwindcss-animate plugin installed and registered -- PASS
+- [x] EC-6: Dark mode toggle (ThemeProvider + next-themes) -- PASS
+- [x] EC-7: WCAG AA contrast (Teal-600 4.6:1, Teal-700 6.0:1) -- PASS
+- [x] EC-8: No navy-* references in source code -- PASS (zero instances)
+
+### Cross-Browser Testing
+
+- [x] Chrome 100+: PASS (standard CSS features)
+- [x] Firefox 100+: PASS
+- [x] Safari 16+: PASS (backdrop-filter conditional graceful degradation)
+
+### Responsive Testing
+
+- [x] 375px (Mobile): PASS
+- [x] 768px (Tablet): PASS
+- [x] 1440px (Desktop): PASS
+
+### Security Audit Results
+
+- [x] No secrets exposed (verified .gitignore covers .env*.local, .mcp.json)
+- [x] No API endpoints (static pages only)
+- [x] No user input processing (demo input has no handlers that transmit data)
+- [x] Font loading: Inter via next/font (self-hosted after build, no CDN call at runtime) -- privacy compliant
+- [x] No dangerouslySetInnerHTML -- zero instances in src/ (verified via grep)
+- [x] Security headers configured in next.config.ts: X-Frame-Options DENY, X-Content-Type-Options nosniff, Referrer-Policy origin-when-cross-origin, HSTS with includeSubDomains -- PASS
+- [x] No `any` types found in component files
+
+### Previously Open Bugs -- Status Update
+
+- BUG-P1-2 (Low): Typography spec drift -- STILL OPEN (documentation only, no runtime impact)
+- BUG-P1-5 (Low): Showcase typography descriptions wrong -- STILL OPEN (cosmetic)
+- BUG-P1-6 (Low): latin-ext subset removed -- **FIXED**. `subsets: ["latin", "latin-ext"]` restored in layout.tsx line 10.
+- BUG-P1-7 (Medium): Showcase page hardcoded German strings -- STILL OPEN (i18n violation on developer-facing page)
+
+### New Bugs Found
+
+No new bugs found this round.
+
+### Regression Testing
+
+- [x] Build passes with 0 errors
+- [x] All Tailwind config tokens unchanged
+- [x] globals.css: only additive changes (sidebar CSS vars)
+- [x] No regressions on PROJ-1 design system tokens
+
+### Summary
+
+- **Acceptance Criteria (Code, v2):** 8/8 passed
+- **Acceptance Criteria (Figma):** 9/9 skipped (manual verification)
+- **Edge Cases:** 8/8 passed
+- **Open Bugs Total:** 3 (0 critical, 0 high, 1 medium, 2 low)
+  - BUG-P1-2 (Low): Typography spec drift in feature file
+  - BUG-P1-5 (Low): Showcase typography descriptions wrong
+  - BUG-P1-7 (Medium): Showcase page hardcoded German strings (i18n violation)
+- **Previously Open Bugs Fixed:** 1 (BUG-P1-6 latin-ext restored)
+- **Security:** PASS
+- **Production Ready:** YES (no critical or high bugs)
 
 ## Deployment
 _To be added by /deploy_

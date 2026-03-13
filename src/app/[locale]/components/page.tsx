@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useTranslations } from "next-intl"
 import {
   Users,
   Activity,
@@ -79,6 +80,7 @@ function Section({
 /* -- Page --------------------------------------------------------- */
 
 export default function ComponentLibraryPage() {
+  const t = useTranslations("showcase.comp")
   const [modalOpen, setModalOpen] = React.useState(false)
   const [confirmOpen, setConfirmOpen] = React.useState(false)
   const [confirmDangerOpen, setConfirmDangerOpen] = React.useState(false)
@@ -92,32 +94,31 @@ export default function ComponentLibraryPage() {
         {/* Header */}
         <div className="space-y-2">
           <h1 className="text-h1 text-foreground">
-            Train Smarter 2.0 &mdash; Component Library
+            {t("title")}
           </h1>
           <p className="text-body-lg text-muted-foreground">
-            PROJ-2: UI Component Library. Alle erweiterten Komponenten auf
-            einen Blick.
+            {t("subtitle")}
           </p>
         </div>
 
         {/* -- Design System Principles -------------------------------- */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div className="rounded-lg border-l-4 border-l-primary bg-primary-50 p-4 dark:bg-primary/10">
-            <p className="text-label text-primary-700 dark:text-primary-300">Teal = Action</p>
+            <p className="text-label text-primary-700 dark:text-primary-300">{t("tealAction")}</p>
             <p className="text-body-sm text-muted-foreground mt-1">
-              CTAs, Highlights, Branding, Focus-Ringe
+              {t("tealActionDesc")}
             </p>
           </div>
           <div className="rounded-lg border-l-4 border-l-violet-500 bg-violet-50 p-4 dark:bg-violet-500/10">
-            <p className="text-label text-violet-700 dark:text-violet-300">Violet = Accent</p>
+            <p className="text-label text-violet-700 dark:text-violet-300">{t("violetAccent")}</p>
             <p className="text-body-sm text-muted-foreground mt-1">
-              Secondary, Periodisierung, Highlights
+              {t("violetAccentDesc")}
             </p>
           </div>
           <div className="rounded-lg border-l-4 border-l-gray-400 bg-gray-50 p-4 dark:bg-gray-800">
-            <p className="text-label text-gray-700 dark:text-gray-300">Left Border = Identity</p>
+            <p className="text-label text-gray-700 dark:text-gray-300">{t("leftBorderIdentity")}</p>
             <p className="text-body-sm text-muted-foreground mt-1">
-              4px Signature-Element durch alle Komponenten
+              {t("leftBorderIdentityDesc")}
             </p>
           </div>
         </div>
@@ -845,7 +846,7 @@ export default function ComponentLibraryPage() {
         {/* Footer */}
         <footer className="border-t border-border pt-8 text-center">
           <p className="text-body-sm text-muted-foreground">
-            Train Smarter 2.0 &mdash; UI Component Library (PROJ-2)
+            {t("footer")}
           </p>
         </footer>
       </main>

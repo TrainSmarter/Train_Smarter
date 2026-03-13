@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════════════
-   Train Smarter 2.0 — Design System v2
+   Train Smarter — Design System
    Brand:    Teal #0D9488 (Primary) + Violet #7C3AED (Secondary)
    Font:     Inter Variable (next/font/google → --font-inter CSS var)
    Neutrals: Warm Slate (no navy tint)
@@ -59,7 +59,7 @@
     /* ── Radius ─────────────────────────────────────────────── */
     --radius: 0.5rem;
 
-    /* ── Sidebar collapsed width (56px — standard for icon sidebars) */
+    /* ── Sidebar collapsed width (56px — matches shadcn sidebar.tsx SIDEBAR_WIDTH_ICON constant) */
     --sidebar-width-icon: 3.5rem;
 
     /* ── Chart — 8 distinguishable data series ──────────────── */

@@ -71,7 +71,7 @@ Trainer können Athleten einladen, verwalten und deren Profile einsehen. Athlete
 
 ## Edge Cases
 - Trainer lädt sich selbst ein → Fehlermeldung "Du kannst dich nicht selbst einladen"
-- Athlet ist bereits mit einem anderen Trainer verbunden → Hinweis "Dieser Athlet ist bereits einem Trainer zugeordnet" (keine Blockierung, parallele Trainer möglich per Business-Entscheidung: NEIN in v2.0 → nur 1 Trainer pro Athlet)
+- Athlet ist bereits mit einem anderen Trainer verbunden → Hinweis "Dieser Athlet ist bereits einem Trainer zugeordnet" (keine Blockierung, parallele Trainer möglich per Business-Entscheidung: NEIN aktuell → nur 1 Trainer pro Athlet)
 - Trainer-Account gelöscht während Einladung ausstehend → Einladungs-Link zeigt Fehlermeldung
 - Athlet entfernt sich aus Team während Trainer offline → Trainer sieht Athlet beim nächsten Laden nicht mehr
 - Profilbild Upload: Nur JPG/PNG/WebP, max 5MB, wird auf 400×400px skaliert (serverseitig)
@@ -79,6 +79,8 @@ Trainer können Athleten einladen, verwalten und deren Profile einsehen. Athlete
 ## Technical Requirements
 - Security: RLS (Row Level Security) in Supabase — Trainer kann nur seine eigenen Athleten sehen
 - Security: Einladungs-Token sind kryptographisch sicher und single-use
+- Security: Persönliche Nachricht im Einladungs-Modal (Freitext, max. 500 Zeichen) wird vor dem Einfügen in das E-Mail-Template (PROJ-13) HTML-escaped — verhindert HTML-Injection in E-Mails
+- Security: Alle User-Input-Felder (Name, E-Mail-Suche) validiert via Zod — kein roher SQL-String; Supabase parametrisierte Queries verhindern SQL-Injection
 - Performance: Athleten-Liste lädt in < 500ms (Pagination bei > 50 Athleten)
 - Realtime: Einladungs-Annahme reflektiert sich ohne Page-Reload beim Trainer (Supabase Realtime)
 
@@ -115,7 +117,7 @@ trainer_athlete_connections
 
 ### Rollen-Wechsel (Athlet → Trainer)
 - Ein Nutzer kann sowohl Athlet als auch Trainer sein (future: role switch)
-- In v2.0: `app_metadata.role` ist entweder ATHLETE oder TRAINER (kein dual-role)
+- Aktuell: `app_metadata.role` ist entweder ATHLETE oder TRAINER (kein dual-role)
 - Migration zu dual-role in PROJ-11+ geplant
 
 ---

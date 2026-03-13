@@ -39,7 +39,7 @@ Organisationen (Vereine/Clubs) können mehrere Trainer und deren Athleten unter 
 - [ ] Route: `/organisation/clubs/new`
 - [ ] Felder: Club-Name, Beschreibung, Logo (optional)
 - [ ] Ersteller wird automatisch Club-Admin
-- [ ] Maximal 1 Club pro Trainer (in v2.0)
+- [ ] Maximal 1 Club pro Trainer (aktuell)
 
 ### Mitglieder-Verwaltung
 - [ ] Club-Admin kann Trainer per E-Mail einladen

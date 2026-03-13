@@ -38,6 +38,33 @@ Universal-Selector (Dropdown)
 - Planstruktur (Mehrjahresplan → Einheit) ist für alle Kontexte identisch — nur die Daten und Bearbeitungsrechte ändern sich
 - Athlet-Perspektive: Athlet öffnet `/training` → sieht seinen eigenen Plan (kein Universal-Selector sichtbar)
 
+## Training Workspace — Einstiegsseite
+
+`/training` zeigt beim Öffnen **nicht** sofort einen Plan, sondern eine **Plan-Auswahlseite** mit drei Sektionen:
+
+```
+/training  (Einstiegsseite)
+  ┌─────────────────────────────────────────┐
+  │  Eigene Pläne                           │
+  │  [Plan-Card] [Plan-Card] [+ Neu]        │
+  ├─────────────────────────────────────────┤
+  │  Platform Bibliothek (Admin-Templates)  │
+  │  [Template-Card] [Template-Card] ...    │
+  ├─────────────────────────────────────────┤
+  │  [+ Leeren Plan erstellen]              │
+  └─────────────────────────────────────────┘
+```
+
+**Autosave-Verhalten (Draft):**
+- Wenn der Trainer einen Plan öffnet und die Seite verlässt (Browser-Back, andere Nav-Item), wird der aktuelle Arbeitsstand **automatisch als Draft gespeichert**
+- Beim nächsten Öffnen des Plans wird der Draft-Stand wiederhergestellt (inklusive Zoom-Position)
+- Draft-Indikator: „Nicht gespeicherte Änderungen" Badge im Plan-Header
+
+**Speichern & Schließen:**
+- „Speichern & Schließen" Button im Plan-Header speichert den Plan final und kehrt zur Einstiegsseite zurück
+- Nach „Speichern & Schließen": Plan erscheint aktualisiert in der Eigene-Pläne-Sektion
+- Unterschied Draft vs. Gespeichert: Draft = nur für Trainer sichtbar; Gespeichert = für zugewiesene Athleten sichtbar
+
 ## Platform Templates — Konzept
 
 Platform Templates werden von Platform-Admins (PROJ-10) erstellt und gepflegt. Sie sind für alle registrierten Trainer lesend zugänglich und können auf allen Planungsebenen existieren.
@@ -70,6 +97,25 @@ platform_templates
 ├── is_published: boolean (default: false — Admin kann Entwürfe haben)
 └── created_at: timestamp
 ```
+
+## Timezone-Strategie
+
+**Grundprinzip: UTC everywhere, display in local**
+- Alle Timestamps werden in der Datenbank als **UTC** gespeichert — keine Ausnahmen
+- Anzeige immer in der **lokalen Browser-Timezone** des Users (`Intl.DateTimeFormat` API)
+- Wochenstart: **Montag** (ISO 8601 — österreichischer Standard)
+- Österreich Sommerzeit (CEST UTC+2) und Winterzeit (CET UTC+1) werden automatisch durch die Browser-Intl-API korrekt behandelt — kein manuelles Offset-Management
+
+**Planungsspezifische Regeln:**
+- Trainingstage im Mikrozyklus sind **date-only** (`YYYY-MM-DD`) — kein Timestamp, kein Timezone-Problem
+- Ein „Montag" im Plan ist immer der ISO-Wochenmontag, unabhängig von der Timezone des Users
+- Timestamps für Workout-Completions, Check-ins, Autosave → UTC gespeichert, Anzeige in lokaler Zeit
+- Mehrjahrespläne: Jahreswechsel = `01.01` des Jahres in lokaler Timezone (nicht UTC-Mitternacht)
+
+**Sommerzeitumstellung (Edge Case):**
+- Trainingstage sind date-only → kein Sommerzeit-Problem
+- Timestamps (z.B. „Einheit abgeschlossen um 23:30") bleiben UTC-korrekt, Anzeige passt sich automatisch an
+- Datum-Berechnungen (Makrozyklus-Dauer, Wochenoffsets) immer auf Basis date-only ohne Timezone-Konversion
 
 ## Zoom Navigation — Kernprinzip
 
@@ -111,10 +157,10 @@ Training  >  Max Müller  >  Jahresplan 2026  >  GPP Phase I  >  Hypertrophie Bl
 - TrainingPeaks: Separate Seiten für Calendar, Plan, Workout — kein Zoom-Prinzip
 - Trainerize: Nur Tages- und Wochenansicht — keine Hierarchie sichtbar
 - TeamBuildr: Block-Planung ohne Drill-Down
-- Train Smarter 2.0: Einziges Tool mit nahtlosem Zoom durch alle 7 Ebenen
+- Train Smarter: Einziges Tool mit nahtlosem Zoom durch alle 7 Ebenen
 
 ## Alleinstellungsmerkmal
-Das vollständige Periodisierungssystem kombiniert mit dem Zoom-Navigationsprinzip ist das zentrale Differenzierungsmerkmal von Train Smarter 2.0. Kein Konkurrent bietet die vollständige Hierarchie mit nahtlosem Drill-Down/Zoom-Out in einem konsistenten Workspace.
+Das vollständige Periodisierungssystem kombiniert mit dem Zoom-Navigationsprinzip ist das zentrale Differenzierungsmerkmal von Train Smarter. Kein Konkurrent bietet die vollständige Hierarchie mit nahtlosem Drill-Down/Zoom-Out in einem konsistenten Workspace.
 
 ## Planungshierarchie
 ```
@@ -162,12 +208,26 @@ Mehrjahresplan (1–4 Jahre)
 - [ ] Figma Screen: Athlet — Training Workspace (kein Selector, direkt Mikrozyklus/Woche)
 - [ ] Figma Screen: Athlet — Einheit durchführen (Satz-für-Satz)
 
-### Universal-Selector
-- [ ] Route: `/training` (Einstieg — Universal-Selector prominent sichtbar wenn kein Kontext aktiv)
-- [ ] Dropdown-Gruppen: "Eigene Planung", "Platform Templates", "Meine Athleten", "Mannschaften"
+### Einstiegsseite (/training)
+- [ ] Route: `/training` — zeigt Plan-Auswahlseite (kein sofortiger Workspace)
+- [ ] Sektion „Eigene Pläne": Liste eigener Pläne als Cards (Name, zuletzt bearbeitet, Status Draft/Gespeichert), „+ Neuer Plan" Card
+- [ ] Sektion „Platform Bibliothek": Liste aller veröffentlichten Admin-Templates (Name, Level, Sport-Typ, Schwierigkeit), Read-only Vorschau + „Klonen" Button
+- [ ] Button „Leeren Plan erstellen" öffnet neuen leeren Plan direkt im Workspace
+- [ ] Draft-Plans haben Badge „Nicht gespeichert" auf der Plan-Card
+- [ ] Athlet-Perspektive: `/training` öffnet direkt den zugewiesenen Mikrozyklus (keine Einstiegsseite)
+
+### Autosave & Plan-Persistenz
+- [ ] Autosave: Beim Verlassen des Workspaces (Navigation, Browser-Close) wird aktueller Stand automatisch als Draft gespeichert
+- [ ] Resume: Beim erneuten Öffnen eines Draft-Plans wird die letzte Zoom-Position und geöffnete Ebene wiederhergestellt
+- [ ] „Speichern & Schließen" Button: Speichert Plan final → kehrt zur Einstiegsseite zurück
+- [ ] Draft-Indikator im Plan-Header: „Nicht gespeicherte Änderungen" Badge (verschwindet nach Speichern)
+- [ ] Zugewiesene Athleten sehen Plan-Updates erst nach „Speichern & Schließen" (nicht bei jedem Autosave)
+
+### Universal-Selector (In-Workspace Kontext-Wechsel)
+- [ ] Im geöffneten Workspace: Kontext-Selector oben (kompakter Dropdown) zum Wechsel zwischen Athleten-Kontexten
+- [ ] Dropdown-Gruppen: "Meine Pläne", "Meine Athleten", "Mannschaften"
 - [ ] Suchfeld im Dropdown (filtert alle Gruppen gleichzeitig)
-- [ ] Zuletzt verwendeter Kontext wird beim nächsten Öffnen vorausgewählt
-- [ ] Athlet-Perspektive: Kein Universal-Selector sichtbar (direkt auf eigenen Plan)
+- [ ] Kontext-Wechsel löst Autosave des aktuellen Plans aus, bevor neuer Kontext geladen wird
 
 ### Zoom-Navigation (alle Ebenen)
 - [ ] Breadcrumb immer sichtbar: `Training > [Kontext] > [Jahresplan] > [Makro] > [Meso] > [Woche] > [Tag]`
@@ -232,6 +292,8 @@ Mehrjahresplan (1–4 Jahre)
 - Plan-Dauer überschritten → Trainer-Dashboard-Banner "Plan für [Athlet] abgelaufen"
 - Mikrozyklus kopieren mit Progression → Warnung wenn % 1RM > 100% resultieren würde
 - Trainer editiert laufenden Plan → Änderungen ab nächster Woche, vergangene Wochen unveränderlich (Audit-Trail)
+- **Concurrent Editing — zwei Browser-Tabs:** Trainer hat denselben Plan in Tab A und Tab B offen → Tab A speichert → Tab B versucht zu speichern → Optimistic-Lock-Check schlägt fehl → Konflikt-Dialog: „Dieser Plan wurde in einem anderen Tab verändert. Deine Änderungen würden die neuere Version überschreiben." → Optionen: „Trotzdem speichern" (überschreiben) / „Verwerfen und neu laden"
+- **Autosave-Kollision:** Autosave und manuelles „Speichern & Schließen" gleichzeitig → Server-seitiger Mutex: einer gewinnt (HTTP 200), anderer bekommt HTTP 409 → Client ignoriert 409 bei Autosave (kein Dialog), zeigt Dialog nur bei manuellem Speichern
 
 ## Technical Requirements
 - Data Model: `plans` → `macro_cycles` → `meso_cycles` → `micro_cycles` → `training_days` → `exercises`
@@ -240,6 +302,8 @@ Mehrjahresplan (1–4 Jahre)
 - Performance: Zeitleisten-View wird server-side aggregiert
 - Data: Übungs-Datenbank als Supabase-Tabelle mit ~200 Standard-Übungen (Seed-Script)
 - Offline: Einheit durchführen muss offline funktionieren (PWA-Cache oder optimistische Updates)
+- **Concurrent Editing:** Alle `UPDATE`-Queries auf Plan-Tabellen prüfen `updated_at = :last_known_updated_at` (Optimistic Locking via Supabase WHERE-Clause) — schlägt fehl wenn ein anderer Client zwischenzeitlich gespeichert hat → HTTP 409 Conflict → Client-seitiger Konflikt-Dialog
+- **XSS-Schutz:** Plan-Namen, Beschreibungen, Notizen und Freitext-Übungsfelder werden server-seitig HTML-escaped vor der Speicherung — kein `dangerouslySetInnerHTML` für user-generated content; React JSX Auto-Escaping greift für alle Text-Nodes
 
 ---
 <!-- Sections below are added by subsequent skills -->

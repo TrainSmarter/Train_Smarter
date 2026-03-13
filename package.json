@@ -1,7 +1,7 @@
 {
-  "name": "ai-coding-starter-kit",
+  "name": "train-smarter",
   "version": "1.0.0",
-  "description": "AI Coding Starter Kit with AI Agent Team System for Claude Code",
+  "description": "Train Smarter — Professionelle Trainingsmanagement-Plattform für Trainer und Athleten",
   "private": true,
   "scripts": {
     "dev": "next dev",

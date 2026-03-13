@@ -1,14 +1,9 @@
 "use client"
 
-import Link from "next/link"
-import { usePathname } from "@/i18n/navigation"
+import { Link, usePathname } from "@/i18n/navigation"
+import { useTranslations } from "next-intl"
 import { cn } from "@/lib/utils"
 import { ThemeToggle } from "@/components/theme-toggle"
-
-const navItems = [
-  { href: "/", label: "Design System" },
-  { href: "/components", label: "Component Library" },
-]
 
 /**
  * ShowcaseNav -- navigation bar for the design system and component library showcase pages.
@@ -16,11 +11,17 @@ const navItems = [
  */
 export function ShowcaseNav() {
   const pathname = usePathname()
+  const t = useTranslations("showcase")
+
+  const navItems = [
+    { href: "/", label: t("designSystem") },
+    { href: "/components", label: t("componentLibrary") },
+  ]
 
   return (
     <nav
       className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
-      aria-label="Showcase-Navigation"
+      aria-label={t("navAriaLabel")}
     >
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-1">

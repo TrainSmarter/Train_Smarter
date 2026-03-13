@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "title": "Train Smarter 2.0",
+    "title": "Train Smarter",
     "description": "Professionelle Trainingsmanagement-Plattform für Trainer und Athleten"
   },
   "nav": {
@@ -16,7 +16,7 @@
     "collapse": "Einklappen",
     "expand": "Ausklappen",
     "brand": "Train Smarter",
-    "version": "2.0",
+    "version": "",
     "navigation": "Navigation",
     "navigationAriaLabel": "Hauptnavigation"
   },
@@ -34,6 +34,42 @@
     "language": "Sprache",
     "german": "Deutsch",
     "english": "English"
+  },
+  "showcase": {
+    "navAriaLabel": "Showcase-Navigation",
+    "designSystem": "Design System",
+    "componentLibrary": "Component Library",
+    "ds": {
+      "title": "Train Smarter — Design System",
+      "subtitle": "PROJ-1: Design System Foundation. Alle Tokens, Farben, Typografie und Komponenten auf einen Blick.",
+      "footer": "Train Smarter — Design System Foundation (PROJ-1)",
+      "sTypography": "Typografie (Inter Variable)",
+      "sPrimaryColor": "Primary (Teal)",
+      "sSecondaryColor": "Secondary (Violet)",
+      "sGrayColor": "Gray (Warm Slate)",
+      "sSemanticColors": "Semantische Farben",
+      "sShadcnTokens": "shadcn/ui Semantic Tokens",
+      "sButtons": "Buttons (shadcn/ui)",
+      "sBadges": "Badges",
+      "sFormElements": "Form Elements",
+      "sSpacing": "Spacing (8px Grid)",
+      "sBorderRadius": "Border Radius",
+      "sShadows": "Schatten",
+      "sMotionTokens": "Motion Tokens",
+      "sCardComposition": "Card Komposition",
+      "darkModeTip": "Tipp: Dark Mode umschalten um die Warm-Slate Dark-Surfaces zu sehen."
+    },
+    "comp": {
+      "title": "Train Smarter — Component Library",
+      "subtitle": "PROJ-2: UI Component Library. Alle erweiterten Komponenten auf einen Blick.",
+      "footer": "Train Smarter — UI Component Library (PROJ-2)",
+      "tealAction": "Teal = Action",
+      "tealActionDesc": "CTAs, Highlights, Branding, Focus-Ringe",
+      "violetAccent": "Violet = Accent",
+      "violetAccentDesc": "Secondary, Periodisierung, Highlights",
+      "leftBorderIdentity": "Left Border = Identity",
+      "leftBorderIdentityDesc": "4px Signature-Element durch alle Komponenten"
+    }
   },
   "dashboard": {
     "title": "Dashboard",
