@@ -1,8 +1,15 @@
 # PROJ-4: Authentication & Onboarding
 
-## Status: In Review
+## Status: Deployed
 **Created:** 2026-03-12
-**Last Updated:** 2026-03-13 (QA Test Results added)
+**Last Updated:** 2026-03-13 (Deployed to production)
+
+## Deployment
+- **Production URL:** https://train-smarter-2.vercel.app
+- **Deployed:** 2026-03-13
+- **QA Status:** All 15 bugs fixed before deployment
+- **Supabase Project:** djnardhjdfdqpxbskahe
+- **Migrations Applied:** profiles, profiles_trigger, updated_at_trigger, profiles_rls, user_consents, avatars_bucket
 
 ## Role Architecture Decision (Phase 1 — implemented in PROJ-3)
 > **IMPORTANT:** This spec governs how role data is stored and managed. The following decisions were made before implementation to ensure future-proofness:
