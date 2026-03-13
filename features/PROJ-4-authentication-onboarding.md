@@ -71,6 +71,15 @@ Komplettes Authentifizierungssystem mit Supabase Auth: Registrierung, Login, Pas
 - [ ] Figma Screen: Onboarding — Skeleton/Loading-Zustand während initialer Profil-Ladung
 - [ ] Figma Screen: Passwort zurücksetzen — Loading-Zustand während PKCE-Token-Verarbeitung (Spinner vor Formular)
 
+### Sprachumschalter (alle Auth-Seiten)
+- [ ] Sprachumschalter (DE / EN) auf allen Auth-Seiten sichtbar: Login, Registrierung, Passwort vergessen, Passwort zurücksetzen, E-Mail bestätigen, Onboarding
+- [ ] Umschalten wechselt die URL zwischen `/de/...` und `/en/...` (next-intl Locale-Routing)
+- [ ] Bei Registrierung: aktuelle URL-Locale wird als `user_metadata.locale` gespeichert (`"de"` oder `"en"`) — dies ist der Default für das Profil
+- [ ] `user_metadata.locale` wird auch in `profiles.locale` gespiegelt (Single Source of Truth für E-Mail-Sprache)
+- [ ] Transaktions-E-Mails (Bestätigung, Passwort-Reset, Einladung, Magic Link, E-Mail-Änderung) werden in der Sprache versendet, die in `profiles.locale` gespeichert ist
+- [ ] Wird die Sprache später im Profil geändert, wird `profiles.locale` aktualisiert und ab sofort für alle zukünftigen E-Mails verwendet
+- [ ] Nach Login: App-Locale wird auf `profiles.locale` gesetzt (URL wechselt automatisch zur gespeicherten Sprache)
+
 ### Login
 - [ ] Felder: E-Mail, Passwort (toggle Sichtbarkeit via `PasswordField`-Komponente)
 - [ ] Supabase `signInWithPassword` Aufruf
@@ -265,6 +274,45 @@ Supabase Edge Function:
     └── set-user-role                   — Setzt app_metadata.roles[] via service-role key (idempotent, mit Consent-Check)
 ```
 
+### A.2) Sprachumschalter & Locale-Persistierung (Nachtrag 2026-03-13)
+
+```
+src/components/locale-switcher.tsx      — DE/EN Toggle-Komponente (wiederverwendbar)
+
+Auth Layout (auth)/layout.tsx           — LocaleSwitcher oben rechts eingebunden
+Onboarding Layout                       — LocaleSwitcher oben rechts eingebunden
+
+Register Page                           — Setzt user_metadata.locale bei signUp
+Middleware                              — Nach Login: Redirect auf profiles.locale
+Profilseite                             — Sprachauswahl speichert profiles.locale
+
+supabase/templates/
+├── confirmation_de.html                — Bestehend (umbenannt)
+├── confirmation_en.html                — Neu (englische Version)
+├── recovery_de.html / recovery_en.html
+├── invite_de.html / invite_en.html
+├── magic_link_de.html / magic_link_en.html
+└── email_change_de.html / email_change_en.html
+
+Supabase Edge Function:
+└── send-auth-email                     — Auth Hook: liest profiles.locale, wählt Template, versendet via SMTP
+```
+
+**Datenmodell-Erweiterung:**
+```
+profiles (bestehendes Feld hinzufügen):
+└── locale: text NOT NULL DEFAULT 'de'  — "de" oder "en", gesetzt bei Registrierung aus URL-Locale
+
+user_metadata (Supabase Auth):
+└── locale: "de" | "en"                — Initialwert bei signUp, gespiegelt nach profiles.locale
+```
+
+**Ablauf:**
+1. Registrierung: URL-Locale → `user_metadata.locale` → DB-Trigger → `profiles.locale`
+2. Login: Middleware liest `profiles.locale` → URL-Redirect auf gespeicherte Sprache
+3. Profiländerung: User ändert Sprache → `profiles.locale` aktualisiert → sofortiger App-Locale-Wechsel
+4. E-Mail-Versand: Auth Hook liest `profiles.locale` → wählt DE oder EN Template → SMTP-Versand
+
 ### B) Data Model
 
 **Supabase Auth (built-in, managed by Supabase):**
@@ -288,6 +336,7 @@ profiles
 ├── birth_date: date | null
 ├── onboarding_completed: boolean DEFAULT false
 ├── onboarding_step: integer DEFAULT 1      ← Wizard-Resumption: zuletzt gespeicherter Schritt
+├── locale: text NOT NULL DEFAULT 'de'     ← "de" oder "en", gesetzt bei Registrierung aus URL-Locale
 ├── created_at: timestamptz DEFAULT now()
 └── updated_at: timestamptz                 ← Auto-Update via DB-Trigger
 ```

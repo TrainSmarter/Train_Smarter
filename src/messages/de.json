@@ -531,6 +531,11 @@
     "viewAthletesDesc": "Alle deine Athleten auf einen Blick.",
     "errorGeneric": "Ein Fehler ist aufgetreten. Bitte versuche es erneut."
   },
+  "localeSwitcher": {
+    "de": "DE",
+    "en": "EN",
+    "switchLanguage": "Sprache wechseln"
+  },
   "common": {
     "confirm": "Bestätigen",
     "cancel": "Abbrechen",

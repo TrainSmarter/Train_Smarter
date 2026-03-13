@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Loader2, Mail, User } from "lucide-react";
 
 import { Link, useRouter } from "@/i18n/navigation";
@@ -26,6 +26,7 @@ export default function RegisterPage() {
   const t = useTranslations("auth.register");
   const tAuth = useTranslations("auth");
   const router = useRouter();
+  const currentLocale = useLocale();
 
   const [error, setError] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -70,6 +71,7 @@ export default function RegisterPage() {
           data: {
             first_name: data.firstName,
             last_name: data.lastName,
+            locale: currentLocale,
           },
         },
       });

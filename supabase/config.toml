@@ -1,2 +1,54 @@
-[project]
-id = "djnardhjdfdqpxbskahe"
+# For detailed configuration reference documentation, visit:
+# https://supabase.com/docs/guides/local-development/cli/config
+project_id = "djnardhjdfdqpxbskahe"
+
+[auth]
+enabled = true
+site_url = "https://www.train-smarter.at"
+additional_redirect_urls = ["http://localhost:3000", "http://localhost:3002", "https://www.train-smarter.at"]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+refresh_token_reuse_interval = 10
+enable_signup = true
+enable_anonymous_sign_ins = false
+enable_manual_linking = false
+minimum_password_length = 8
+password_requirements = "letters_digits"
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = true
+secure_password_change = false
+max_frequency = "60s"
+otp_length = 6
+otp_expiry = 3600
+
+[auth.email.smtp]
+enabled = true
+host = "s306.goserver.host"
+port = 465
+user = "noreply@train-smarter.at"
+pass = "env(SMTP_PASS)"
+admin_email = "noreply@train-smarter.at"
+sender_name = "Train Smarter"
+
+[auth.email.template.invite]
+subject = "Du wurdest zu Train Smarter eingeladen"
+content_path = "./supabase/templates/invite_de.html"
+
+[auth.email.template.confirmation]
+subject = "Bestätige deine E-Mail-Adresse"
+content_path = "./supabase/templates/confirmation_de.html"
+
+[auth.email.template.recovery]
+subject = "Passwort zurücksetzen"
+content_path = "./supabase/templates/recovery_de.html"
+
+[auth.email.template.magic_link]
+subject = "Dein Login-Link"
+content_path = "./supabase/templates/magic_link_de.html"
+
+[auth.email.template.email_change]
+subject = "E-Mail-Adresse ändern"
+content_path = "./supabase/templates/email_change_de.html"

@@ -46,7 +46,7 @@ Vollständige E-Mail-Infrastruktur für alle Transaktions-Mails der App. Umfasst
 - [ ] **Registrierung / E-Mail-Bestätigung:** Betreff „Bitte bestätige deine E-Mail-Adresse — Train Smarter", Absender noreply@train-smarter.at
 - [ ] **Passwort-Reset:** Betreff „Passwort zurücksetzen — Train Smarter", Link gültig 1h
 - [ ] **E-Mail-Adresse ändern:** Bestätigungs-E-Mail an neue Adresse, Hinweis-E-Mail an alte Adresse
-- [ ] Alle Auth-E-Mails: Deutschsprachig, konsistentes Layout (Logo, Farben aus Design System PROJ-1)
+- [ ] Alle Auth-E-Mails: Zweisprachig (DE/EN) — Sprache basiert auf `profiles.locale` des Empfängers, konsistentes Layout (Logo, Farben aus Design System PROJ-1)
 
 ### Athleten-Einladung (PROJ-5)
 - [ ] **Trigger:** Trainer lädt Athleten ein
@@ -87,7 +87,9 @@ Vollständige E-Mail-Infrastruktur für alle Transaktions-Mails der App. Umfasst
 - [ ] Einheitliches HTML-Template für alle E-Mails: Logo oben, Teal-Primärfarbe (#0D9488) für CTAs, Footer mit Links
 - [ ] Responsive HTML (funktioniert auf Mobile Mail-Clients)
 - [ ] Plain-Text-Fallback für alle E-Mails (Spam-Filter-Optimierung)
-- [ ] Deutschsprachig (Österreich-DE: keine Helvetismen, kein „ss" statt „ß")
+- [ ] Zweisprachig: Deutsche (Österreich-DE: keine Helvetismen, kein „ss" statt „ß") und englische Version jedes Templates
+- [ ] Sprache wird anhand `profiles.locale` des Empfängers bestimmt (Standard: `de` wenn nicht gesetzt)
+- [ ] Supabase Auth-E-Mails: Auth Hook oder Edge Function wählt das passende Template basierend auf `profiles.locale`
 
 ## Edge Cases
 - SMTP-Server nicht erreichbar → E-Mail wird in Queue (Retry-Mechanismus: 3 Versuche in 1h) gespeichert, danach Fehler-Log
@@ -107,26 +109,58 @@ Vollständige E-Mail-Infrastruktur für alle Transaktions-Mails der App. Umfasst
 
 ## E-Mail-Übersicht (alle Templates)
 
-| # | Trigger | Betreff | Empfänger |
-|---|---------|---------|-----------|
-| 1 | Registrierung | Bitte bestätige deine E-Mail-Adresse | Neuer User |
-| 2 | Passwort-Reset | Passwort zurücksetzen | User |
-| 3 | E-Mail-Änderung | Bestätige deine neue E-Mail-Adresse | Neuer + alter User |
-| 4 | Athlet eingeladen | [Trainer] hat dich eingeladen | Eingeladener Athlet |
-| 5 | Einladung angenommen | [Athlet] hat deine Einladung angenommen | Trainer |
-| 6 | Einladung abgelehnt | [Athlet] hat deine Einladung abgelehnt | Trainer |
-| 7 | Verbindung getrennt (Trainer) | Dein Trainer hat die Verbindung getrennt | Athlet |
-| 8 | Verbindung getrennt (Athlet) | [Athlet] hat die Verbindung getrennt | Trainer |
-| 9 | Daten-Export bereit | Dein Daten-Export ist bereit | User |
-| 10 | Account-Löschung initiiert | Account-Löschung eingeleitet | User |
-| 11 | Account-Löschung abgeschlossen | Dein Account wurde gelöscht | User |
-| 12 | Trainer verlässt Plattform | Dein Trainer hat die Plattform verlassen | Alle Athleten des Trainers |
+> Alle E-Mails existieren in DE + EN. Sprache wird durch `profiles.locale` des Empfängers bestimmt.
+
+| # | Trigger | Betreff (DE) | Betreff (EN) | Empfänger |
+|---|---------|-------------|-------------|-----------|
+| 1 | Registrierung | Bestätige deine E-Mail-Adresse | Confirm your email address | Neuer User |
+| 2 | Passwort-Reset | Passwort zurücksetzen | Reset your password | User |
+| 3 | E-Mail-Änderung | E-Mail-Adresse ändern | Change your email address | Neuer + alter User |
+| 4 | Athlet eingeladen | [Trainer] hat dich eingeladen | [Trainer] has invited you | Eingeladener Athlet |
+| 5 | Einladung angenommen | [Athlet] hat deine Einladung angenommen | [Athlete] accepted your invitation | Trainer |
+| 6 | Einladung abgelehnt | [Athlet] hat deine Einladung abgelehnt | [Athlete] declined your invitation | Trainer |
+| 7 | Verbindung getrennt (Trainer) | Dein Trainer hat die Verbindung getrennt | Your coach disconnected | Athlet |
+| 8 | Verbindung getrennt (Athlet) | [Athlet] hat die Verbindung getrennt | [Athlete] disconnected | Trainer |
+| 9 | Daten-Export bereit | Dein Daten-Export ist bereit | Your data export is ready | User |
+| 10 | Account-Löschung initiiert | Account-Löschung eingeleitet | Account deletion initiated | User |
+| 11 | Account-Löschung abgeschlossen | Dein Account wurde gelöscht | Your account has been deleted | User |
+| 12 | Trainer verlässt Plattform | Dein Trainer hat die Plattform verlassen | Your coach has left the platform | Alle Athleten des Trainers |
 
 ---
 <!-- Sections below are added by subsequent skills -->
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+
+**Designed:** 2026-03-13
+
+### Zweisprachige E-Mail-Architektur
+
+**Sprachbestimmung:** `profiles.locale` ist Single Source of Truth. Standard: `"de"` wenn nicht gesetzt.
+
+**Supabase Auth-E-Mails (Confirmation, Recovery, Invite, Magic Link, Email Change):**
+- Supabase Auth Hook (Send Email Hook) als Edge Function
+- Hook empfängt E-Mail-Event von Supabase Auth
+- Hook liest `profiles.locale` des Empfängers aus DB
+- Hook wählt passendes Template (DE/EN) und versendet via SMTP (s306.goserver.host:465)
+- Supabase built-in E-Mail-Versand wird durch den Hook ersetzt
+
+**App-E-Mails (Einladungen, Export, Verbindungen):**
+- Eigene Supabase Edge Function pro Event-Typ
+- Liest `profiles.locale` des Empfängers
+- Wählt Template + Betreff in der richtigen Sprache
+- Versendet via SMTP
+
+**Template-Struktur:**
+```
+supabase/templates/
+├── confirmation_de.html / confirmation_en.html
+├── recovery_de.html / recovery_en.html
+├── invite_de.html / invite_en.html
+├── magic_link_de.html / magic_link_en.html
+└── email_change_de.html / email_change_en.html
+```
+
+**Ablauf:** Registrierung (URL-Locale) → `profiles.locale` → Auth Hook liest locale → Template-Auswahl → SMTP-Versand
 
 ## QA Test Results
 _To be added by /qa_

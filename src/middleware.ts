@@ -129,7 +129,29 @@ export default async function middleware(request: NextRequest) {
     }
   }
 
-  // 6. Role-based route protection
+  // 6. Locale redirect: if user has a preferred locale in metadata, redirect to it
+  if (
+    user &&
+    user.email_confirmed_at &&
+    user.app_metadata?.onboarding_completed === true &&
+    isProtectedRoute(cleanPathname) &&
+    user.user_metadata?.locale &&
+    routing.locales.includes(user.user_metadata.locale) &&
+    user.user_metadata.locale !== locale
+  ) {
+    const preferredLocale = user.user_metadata.locale as string;
+    const redirectUrl = new URL(
+      `/${preferredLocale}${cleanPathname}`,
+      request.url
+    );
+    // Preserve query params
+    request.nextUrl.searchParams.forEach((value, key) => {
+      redirectUrl.searchParams.set(key, value);
+    });
+    return NextResponse.redirect(redirectUrl);
+  }
+
+  // 7. Role-based route protection (was step 6)
   if (user && user.app_metadata?.onboarding_completed) {
     const roles = (user.app_metadata?.roles as string[]) ?? [];
 
@@ -144,7 +166,7 @@ export default async function middleware(request: NextRequest) {
     }
   }
 
-  // 7. Run next-intl middleware on the supabase response
+  // 8. Run next-intl middleware on the supabase response
   const intlResponse = intlMiddleware(request);
 
   // Merge cookies from supabase response into intl response

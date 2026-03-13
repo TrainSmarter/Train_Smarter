@@ -1,6 +1,7 @@
 import { Dumbbell } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { AuthErrorBoundary } from "@/components/auth-error-boundary";
+import { LocaleSwitcher } from "@/components/locale-switcher";
 
 export default async function AuthLayout({
   children,
@@ -10,7 +11,12 @@ export default async function AuthLayout({
   const t = await getTranslations("auth");
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
+    <div className="relative flex min-h-screen flex-col items-center justify-center bg-background p-4">
+      {/* Locale switcher */}
+      <div className="absolute right-4 top-4">
+        <LocaleSwitcher />
+      </div>
+
       {/* Brand header */}
       <div className="mb-8 flex flex-col items-center gap-2">
         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-700 text-primary-foreground">

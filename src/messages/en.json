@@ -531,6 +531,11 @@
     "viewAthletesDesc": "All your athletes at a glance.",
     "errorGeneric": "An error occurred. Please try again."
   },
+  "localeSwitcher": {
+    "de": "DE",
+    "en": "EN",
+    "switchLanguage": "Switch language"
+  },
   "common": {
     "confirm": "Confirm",
     "cancel": "Cancel",
