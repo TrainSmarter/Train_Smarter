@@ -496,10 +496,24 @@ onboarding.wizard.*   — Wizard-Shell (Progress-Bar, Skip, Back, Next, Fertig)
 - **Onboarding step tracking:** Uses both `profiles.onboarding_step` (DB, for resumption) and `user_metadata.onboarding_completed` (for middleware check without DB query). The middleware reads `user_metadata` to avoid a DB call per request.
 - **BUG-7 (Loading state):** Addressed via middleware redirect pattern — unauthenticated users never reach protected layout. Suspense boundary not needed since middleware handles the check at edge level.
 
-### Backend Still Needed
-- Database migrations (profiles table, user_consents table, triggers, RLS policies)
-- Supabase Storage bucket configuration (avatars)
-- Supabase Dashboard configuration (Auth settings, email templates)
+## Backend Implementation Notes (2026-03-13)
+
+### Database Migrations Applied (via Supabase MCP)
+1. **`create_profiles_table`** — `profiles` table with all columns (id, first_name, last_name, avatar_url, birth_date, onboarding_completed, onboarding_step, created_at, updated_at), FK to auth.users with CASCADE DELETE
+2. **`create_profiles_trigger`** — `handle_new_user()` function + trigger on `auth.users INSERT` auto-creates profile from `raw_user_meta_data`
+3. **`profiles_updated_at_trigger`** — `handle_updated_at()` function + trigger auto-updates `updated_at` on row change
+4. **`profiles_rls`** — RLS enabled; SELECT/UPDATE own row only; no direct INSERT (trigger only)
+5. **`create_user_consents_table`** — `consent_type` enum, `user_consents` table with UNIQUE constraint, index, RLS (SELECT/INSERT/UPDATE own rows)
+6. **`create_avatars_bucket`** — Private bucket, 5MB limit, JPEG/PNG/WebP only (SVG blocked), RLS for own folder (INSERT/UPDATE/DELETE/SELECT)
+
+### API Route Updated
+- `src/app/api/auth/set-role/route.ts` — Added Zod validation (`z.enum(["TRAINER", "ATHLETE"])`) and consent verification (checks `user_consents.terms_privacy.granted = true` before allowing role assignment)
+
+### Supabase Dashboard Configuration (MANUAL — required before go-live)
+- **Auth > URL Configuration:** Site URL = `https://train-smarter.vercel.app`, Redirect URLs = `https://train-smarter.vercel.app/*/auth/callback, http://localhost:3000/*/auth/callback`
+- **Auth > Email:** Confirm email = enabled (default)
+- **Auth > Sessions:** JWT expiry = 3600s (default), Refresh token rotation = enabled
+- **Auth > Rate Limits:** Default Supabase rate limits apply (no custom config needed for MVP)
 
 ## QA Test Results
 _To be added by /qa_

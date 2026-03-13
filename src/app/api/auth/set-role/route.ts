@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { createClient as createServerClient } from "@/lib/supabase/server";
+import { z } from "zod";
 
-const VALID_ROLES = ["TRAINER", "ATHLETE"] as const;
+const setRoleSchema = z.object({
+  role: z.enum(["TRAINER", "ATHLETE"]),
+});
 
 export async function POST(request: Request) {
   try {
@@ -20,16 +23,18 @@ export async function POST(request: Request) {
       );
     }
 
-    // 2. Parse and validate the request body
+    // 2. Parse and validate the request body with Zod
     const body = await request.json();
-    const { role } = body;
+    const parsed = setRoleSchema.safeParse(body);
 
-    if (!role || !VALID_ROLES.includes(role)) {
+    if (!parsed.success) {
       return NextResponse.json(
         { error: "Invalid role. Must be TRAINER or ATHLETE." },
         { status: 400 }
       );
     }
+
+    const { role } = parsed.data;
 
     // 3. Check if user already has a different role set (prevent role change)
     const existingRoles = user.app_metadata?.roles as string[] | undefined;
@@ -45,7 +50,23 @@ export async function POST(request: Request) {
       );
     }
 
-    // 4. Use service-role key to set app_metadata.roles
+    // 4. Verify consent exists before allowing role assignment
+    const { data: consent, error: consentError } = await supabase
+      .from("user_consents")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("consent_type", "terms_privacy")
+      .eq("granted", true)
+      .maybeSingle();
+
+    if (consentError || !consent) {
+      return NextResponse.json(
+        { error: "Terms and privacy consent required before role selection." },
+        { status: 403 }
+      );
+    }
+
+    // 5. Use service-role key to set app_metadata.roles
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
