@@ -30,9 +30,9 @@ export function AppHeader({ pageTitle }: AppHeaderProps) {
 
   return (
     <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-2 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 lg:px-6">
-      {/* Sidebar toggle — always visible (hamburger on mobile, collapse toggle on desktop) */}
-      <SidebarTrigger className="-ml-1" />
-      <Separator orientation="vertical" className="mx-2 h-4" />
+      {/* Sidebar toggle — mobile/tablet only (hamburger to open sheet) */}
+      <SidebarTrigger className="-ml-1 lg:hidden" />
+      <Separator orientation="vertical" className="mx-2 h-4 lg:hidden" />
 
       {/* Mobile-only: brand logo */}
       <div className="flex items-center gap-1.5 lg:hidden">

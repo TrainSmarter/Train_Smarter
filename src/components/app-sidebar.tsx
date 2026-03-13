@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Dumbbell, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useTranslations } from "next-intl";
 
 import {
@@ -29,6 +30,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
   const isPlatformAdmin = user?.app_metadata.is_platform_admin ?? false;
   const { state, toggleSidebar } = useSidebar();
   const isCollapsed = state === "collapsed";
+  const isMobile = useIsMobile();
   const t = useTranslations("sidebar");
 
   return (
@@ -60,23 +62,28 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
       </SidebarContent>
 
       <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              onClick={toggleSidebar}
-              tooltip={t("expand")}
-              className="text-sidebar-foreground/60 hover:text-sidebar-foreground"
-            >
-              {isCollapsed ? (
-                <PanelLeftOpen className="size-4" />
-              ) : (
-                <PanelLeftClose className="size-4" />
-              )}
-              <span>{t("collapse")}</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-        <SidebarSeparator />
+        {/* Collapse/expand toggle — desktop only (mobile uses header hamburger) */}
+        {!isMobile && (
+          <>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={toggleSidebar}
+                  tooltip={t("expand")}
+                  className="text-sidebar-foreground/60 hover:text-sidebar-foreground"
+                >
+                  {isCollapsed ? (
+                    <PanelLeftOpen className="size-4" />
+                  ) : (
+                    <PanelLeftClose className="size-4" />
+                  )}
+                  <span>{t("collapse")}</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+            <SidebarSeparator />
+          </>
+        )}
         {user && <UserButton user={user} />}
       </SidebarFooter>
 
