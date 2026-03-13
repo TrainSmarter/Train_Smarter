@@ -1,8 +1,8 @@
 # PROJ-4: Authentication & Onboarding
 
-## Status: In Progress
+## Status: In Review
 **Created:** 2026-03-12
-**Last Updated:** 2026-03-13 (Expert Review — Security, Backend, Frontend, QA)
+**Last Updated:** 2026-03-13 (QA Test Results added)
 
 ## Role Architecture Decision (Phase 1 — implemented in PROJ-3)
 > **IMPORTANT:** This spec governs how role data is stored and managed. The following decisions were made before implementation to ensure future-proofness:
@@ -516,7 +516,407 @@ onboarding.wizard.*   — Wizard-Shell (Progress-Bar, Skip, Back, Next, Fertig)
 - **Auth > Rate Limits:** Default Supabase rate limits apply (no custom config needed for MVP)
 
 ## QA Test Results
-_To be added by /qa_
+
+**Tested:** 2026-03-13
+**App URL:** http://localhost:3000
+**Tester:** QA Engineer (AI) -- Static Code Audit + Build Verification
+**Build Status:** PASS (Next.js 16.1.1 Turbopack, 0 errors, 3 warnings)
+**Lint Status:** PASS (0 errors, 3 warnings -- react-hook-form `watch()` incompatible-library, non-blocking)
+
+---
+
+### Acceptance Criteria Status
+
+#### AC-1: Figma Screens
+- [ ] NOT TESTABLE: Figma screens are a design deliverable, not verifiable via code audit. Skipped.
+
+#### AC-2: Login
+- [x] Fields: Email, Password with toggle visibility via `PasswordField` component -- PASS (login/page.tsx lines 97-115)
+- [x] Supabase `signInWithPassword` call -- PASS (login/page.tsx line 51)
+- [x] Error "Invalid credentials" shows Alert (no distinction email vs password) -- PASS (login/page.tsx line 63)
+- [x] Supabase error code `email_not_confirmed` redirects to `/verify-email` -- PASS (login/page.tsx line 57-59)
+- [x] "Eingeloggt bleiben" Checkbox present -- PASS (login/page.tsx lines 118-131)
+- [ ] BUG-1: "Eingeloggt bleiben" Checkbox has no functional implementation. The `rememberMe` value is captured but never passed to Supabase. Supabase session persistence is configured at the project level, not per-login. The checkbox is purely cosmetic.
+- [x] Link to "Passwort vergessen" -- PASS (login/page.tsx line 133)
+- [x] Link to "Registrieren" -- PASS (login/page.tsx line 154)
+- [x] After login: Redirect to `/dashboard` or `returnUrl` -- PASS (login/page.tsx lines 72-74)
+- [x] `returnUrl` validation: only same-origin relative paths -- PASS (login/page.tsx line 72, middleware.ts line 56)
+- [x] Already logged-in user visiting `/login` redirects to `/dashboard` -- PASS (middleware.ts lines 92-95)
+- [ ] BUG-2: `returnUrl` is NOT preserved through the entire redirect chain. If user goes from login to verify-email to onboarding, the `returnUrl` is lost at the verify-email redirect (middleware.ts line 99-103 does not forward returnUrl).
+- [ ] BUG-3: Login form does not use Zod resolver for client-side validation. The `loginSchema` is defined in `validations/auth.ts` but never imported or used in login/page.tsx. The form uses bare `react-hook-form` with `{ required: true }` only -- no Zod integration.
+
+#### AC-3: Registration
+- [x] Fields: Vorname, Nachname, E-Mail, Password, Confirm Password with `PasswordField` -- PASS
+- [x] Password requirements: Min 8 chars, 1 uppercase, 1 number -- PASS (register/page.tsx lines 157-163)
+- [x] Client-side validation with react-hook-form pattern/validate rules -- PASS
+- [ ] BUG-4: Registration form does not use Zod resolver either. The `registerSchema` from `validations/auth.ts` is imported as a TYPE only (`import type { RegisterFormData }`) but the schema itself is never used for validation. Zod validation is duplicated manually via react-hook-form validate rules.
+- [x] Supabase `signUp` call with `emailRedirectTo` -- PASS (register/page.tsx lines 71-81)
+- [x] After registration: redirect to "E-Mail bestaetigen" screen -- PASS (register/page.tsx line 92)
+- [ ] BUG-5: Invitation token (`inviteToken`) from URL parameter is not handled in registration page. The spec requires storing inviteToken in an httpOnly cookie via Route Handler, but no such Route Handler exists. The onboarding page reads inviteToken from `document.cookie` (a regular cookie, not httpOnly), and there is no mechanism to set it.
+- [ ] NOT IMPLEMENTED: Invited athlete role pre-selection on registration page (spec says "ATHLETE vorgewaehlt, TRAINER-Option ausgegraut" in Step 3 only, which IS implemented in onboarding).
+
+#### AC-4: Password Reset
+- [x] Step 1: Email input with Supabase `resetPasswordForEmail` and `redirectTo` including `?type=recovery` -- PASS
+- [x] Confirmation screen: "Wenn diese E-Mail existiert..." (account enumeration prevented) -- PASS (forgot-password/page.tsx line 53 shows success even on error)
+- [x] Step 2: Client Component with loading spinner during PKCE exchange -- PASS (reset-password/page.tsx lines 130-146)
+- [x] Step 2: New password + confirm with `updateUser` -- PASS
+- [x] After reset: Other sessions invalidated via `signOut({ scope: 'others' })` -- PASS (reset-password/page.tsx line 115)
+- [x] After reset: Redirect to `/login` -- PASS (reset-password/page.tsx line 121)
+- [x] Error code `otp_expired` shows clear error with "Neuen Link anfordern" CTA -- PASS (reset-password/page.tsx lines 53, 78, 149-167)
+
+#### AC-5: Email Verification
+- [x] Info screen with instructions + "Erneut senden" button with 60s cooldown -- PASS
+- [x] `onAuthStateChange` listener detects `SIGNED_IN` event with verified email, auto-redirect to `/onboarding` -- PASS (verify-email/page.tsx lines 33-39)
+- [x] `/auth/callback` Route Handler processes PKCE code, handles errors -- PASS (callback/route.ts)
+- [x] Rate limit error `over_email_send_rate_limit` handled with specific message -- PASS (verify-email/page.tsx line 62)
+
+#### AC-6: BUG-6 (Email verification check in middleware)
+- [x] Middleware checks `user.email_confirmed_at` and redirects unverified users to `/verify-email` -- PASS (middleware.ts lines 98-104)
+
+#### AC-7: BUG-7 (Loading state during session check)
+- [x] Addressed via middleware redirect pattern (edge-level, no flash) -- PASS (deviation documented in spec)
+
+#### AC-8: Onboarding Wizard
+- [x] Only shown when `onboarding_completed = false` (via middleware `user_metadata` check) -- PASS (middleware.ts lines 110-126)
+- [x] Wizard renders in own layout without AppSidebar -- PASS (onboarding/layout.tsx)
+- [x] Wizard reads `profiles.onboarding_step` for resumption -- PASS (onboarding/page.tsx lines 90-104)
+- [x] Step 1: DSGVO consents with required AGB checkbox, optional body/nutrition -- PASS
+- [x] Step 1: Without required checkbox, "Weiter" button disabled -- PASS (onboarding/page.tsx line 607)
+- [x] Step 1: Consents saved via upsert to `user_consents` -- PASS (onboarding/page.tsx lines 146-169)
+- [x] Step 2: Name (pre-filled), birth date, avatar upload -- PASS
+- [x] Step 2: Avatar preview via `URL.createObjectURL` -- PASS (avatar-upload.tsx line 64)
+- [x] Step 3: Role selection with `RoleSelectCard` -- PASS
+- [x] Step 3: Invited athletes have ATHLETE pre-selected, TRAINER disabled -- PASS (onboarding/page.tsx lines 499-501)
+- [x] Step 3: Edge Function (API route) sets `app_metadata.roles` -- PASS
+- [x] Step 3: Error shows retry button -- PASS (onboarding/page.tsx line 258-261)
+- [x] Step 4 Trainer: Optional invite email -- PASS
+- [x] Step 4 Athlete: Optional invite code, auto-filled from cookie -- PASS (onboarding/page.tsx line 86)
+- [x] Skip available on Step 2 and Step 4, NOT on Steps 1 and 3 -- PASS (onboarding/page.tsx line 330)
+- [x] After completion: `onboarding_completed = true` in profiles + user_metadata, redirect to `/dashboard` -- PASS
+- [ ] BUG-6: Step 2 name fields have no validation. Empty names are accepted and saved to DB. The spec requires names to be validated (letters, umlauts, international chars, max 100 chars). No Zod validation or regex check is applied in the onboarding step 2 form fields.
+- [ ] BUG-7: `onboarding_step` is not updated when skipping Step 2. The `handleSkip` function (line 321) directly sets `setCurrentStep(3)` without updating `profiles.onboarding_step` in the DB. If the user closes the browser after skipping Step 2, they will resume at Step 1 (or wherever the DB value was last saved).
+
+#### AC-9: Auth Callback Route
+- [x] PKCE code exchange for all callback types -- PASS
+- [x] Error handling with redirect to appropriate page -- PASS
+- [x] Recovery type redirects to `/reset-password` -- PASS
+- [x] Signup verification redirects to `/onboarding` -- PASS
+
+#### AC-10: Set-Role API Route
+- [x] Session verification via `getUser()` -- PASS
+- [x] Zod validation of role enum -- PASS
+- [x] Idempotent: returns 200 if same role already set -- PASS
+- [x] Blocks role change after initial set (409) -- PASS
+- [x] Consent verification before role assignment -- PASS
+- [x] Service-role key used server-side only -- PASS
+
+---
+
+### Edge Cases Status
+
+#### EC-1: Email already registered
+- [x] Supabase returns identical response (account enumeration prevented) -- PASS (register/page.tsx line 91 comment)
+
+#### EC-2: Invitation token invalid/expired
+- [ ] NOT IMPLEMENTED: No invitation token processing infrastructure exists yet. The inviteToken cookie reading in onboarding is present but no Route Handler to set the httpOnly cookie.
+
+#### EC-3: Supabase unreachable (network error)
+- [ ] BUG-8: No `AuthErrorBoundary` component exists. The spec lists it under "Neue Komponenten" but it was not created. Network errors fall through to generic catch blocks with text messages, but no dedicated fallback UI for "Service vorubergehend nicht verfuegbar" with retry.
+
+#### EC-4: Login with unverified account
+- [x] Redirect to `/verify-email` (not "Invalid credentials") -- PASS (login/page.tsx line 57)
+
+#### EC-5: Rate limit error on resend
+- [x] Countdown timer + specific error message -- PASS
+
+#### EC-6: Email verification link expired
+- [x] Callback redirects with error param, verify-email page can handle it -- PASS
+
+#### EC-7: Password reset link expired
+- [x] `otp_expired` shows "Link abgelaufen" + CTA to `/forgot-password` -- PASS
+
+#### EC-8: Edge Function for role fails
+- [x] Error message with retry (user stays on Step 3) -- PASS
+
+#### EC-9: Wizard re-enter after browser close
+- [x] `profiles.onboarding_step` determines entry point -- PASS (with BUG-7 caveat for skipped steps)
+
+#### EC-10: Step 1 consent already saved + wizard reopened
+- [x] Upsert operation prevents duplicate key error -- PASS (onboarding/page.tsx line 167)
+
+#### EC-11: Avatar upload > 5MB
+- [x] Client-side size check blocks upload -- PASS (avatar-upload.tsx line 58)
+
+#### EC-12: Avatar invalid file type
+- [x] Client-side type check (JPEG, PNG, WebP only) -- PASS (avatar-upload.tsx line 52)
+
+#### EC-13: Avatar overwrite on re-upload
+- [x] Existing files deleted before new upload -- PASS (onboarding/page.tsx lines 194-201)
+
+#### EC-14: Multi-device onboarding completion
+- [x] Middleware check on `user_metadata.onboarding_completed` redirects to dashboard -- PASS
+
+---
+
+### Security Audit Results (Red Team)
+
+#### Authentication & Session Security
+- [x] Middleware uses `getUser()` not `getSession()` -- PASS (Critical security requirement met)
+- [x] PKCE flow used for all auth callbacks (no implicit flow) -- PASS
+- [x] Service-role key only used server-side in API route, not in NEXT_PUBLIC_ vars -- PASS
+- [x] `SUPABASE_SERVICE_ROLE_KEY` never appears in client-side code -- PASS
+- [x] No `getSession()` usage anywhere in the codebase -- PASS
+
+#### Authorization
+- [x] Set-role API verifies session user matches target user (implicit: `getUser()` returns caller) -- PASS
+- [x] Set-role API prevents role changes after initial set (409 Conflict) -- PASS
+- [x] Set-role API verifies consent before role assignment -- PASS
+- [x] Roles stored in `app_metadata` (not user-writable `user_metadata`) -- PASS
+
+#### Input Validation
+- [x] Name regex validation in Zod schemas allows only letters, spaces, hyphens (Unicode-aware) -- PASS
+- [ ] BUG-9: Onboarding Step 2 name fields bypass Zod validation entirely. Server-side name values are written directly to profiles table without validation. An attacker could submit `<script>` tags or SQL injection payloads via the name fields in onboarding (though React auto-escaping and Supabase parameterized queries mitigate the direct risk, the spec explicitly requires server-side HTML escaping).
+- [x] Avatar upload: client-side MIME type + size validation -- PASS
+- [ ] BUG-10: No server-side magic-byte validation for avatar uploads. The spec requires "Server-seitige Magic-Byte-Validierung vor Storage-Upload". Currently only client-side MIME check is implemented. A crafted request could bypass the client check and upload a malicious file with a spoofed content-type.
+- [x] Set-role API uses Zod enum validation -- PASS
+
+#### Open Redirect Prevention
+- [x] `returnUrl` validated: must start with `/` and not contain `://` -- PASS (middleware.ts line 56, login/page.tsx line 72)
+- [ ] BUG-11: `returnUrl` validation is incomplete. URLs like `/\evil.com` or `//evil.com` would pass the current check (`starts with /` and `no ://`). The `//evil.com` pattern is a protocol-relative URL and is a known open redirect vector. Should additionally check `!url.startsWith("//")`.
+
+#### XSS Prevention
+- [x] No `dangerouslySetInnerHTML` usage in entire src/ -- PASS
+- [x] All user-facing text rendered via React JSX (auto-escaped) -- PASS
+- [x] Avatar URL in UserButton sanitized via `getSafeAvatarUrl()` (only https: protocol allowed) -- PASS
+- [x] SVG explicitly blocked in avatar upload (not in ALLOWED_TYPES) -- PASS
+- [x] CSP header configured in next.config.ts (includes frame-ancestors 'none') -- PASS
+
+#### Security Headers
+- [x] X-Frame-Options: DENY -- PASS
+- [x] X-Content-Type-Options: nosniff -- PASS
+- [x] Referrer-Policy: strict-origin-when-cross-origin (global) + no-referrer (auth routes) -- PASS
+- [x] HSTS with includeSubDomains and preload -- PASS
+- [x] CSP configured -- PASS
+- [x] Permissions-Policy restricts camera, microphone, geolocation, payment -- PASS
+- [x] COOP: same-origin -- PASS
+- [x] CORP: same-origin -- PASS
+
+#### Rate Limiting
+- [ ] BUG-12: No rate limiting on `/api/auth/set-role` endpoint. The spec requires "Rate-Limiting auf benutzerdefinierten Route Handlers via Upstash Rate Limit oder Vercel Edge Rate Limiting". An attacker could spam this endpoint. While the idempotency check mitigates some risk, rapid requests could cause load.
+
+#### Data Exposure
+- [x] Error messages don't leak account existence (registration, forgot-password) -- PASS
+- [x] Login error is generic "E-Mail oder Passwort ist falsch" (no distinction) -- PASS
+- [x] No sensitive data in client-side code or bundle -- PASS
+
+#### Token/Session Security
+- [x] inviteToken in onboarding read from `document.cookie` (visible to JS) -- noted but acceptable for MVP
+- [ ] BUG-13: The spec requires inviteToken stored as httpOnly cookie (not accessible via `document.cookie`). Current implementation reads from `document.cookie` which means it's NOT httpOnly. This is a deviation from the security requirement, reducing protection against XSS token theft.
+
+---
+
+### Regression Testing (Deployed Features)
+
+#### PROJ-1: Design System Foundation
+- [x] Build passes, all design tokens intact -- PASS
+- [x] Security headers still configured correctly in next.config.ts -- PASS
+
+#### PROJ-2: UI Component Library
+- [x] All shadcn/ui components used correctly (Button, Card, Input, Alert, Checkbox, Avatar, Label) -- PASS
+- [x] No custom versions of installed shadcn components created -- PASS
+
+#### PROJ-3: App Shell & Navigation
+- [x] Protected layout still renders with SidebarProvider + AppSidebar + AppHeader -- PASS
+- [x] UserButton updated with real Supabase signOut -- PASS (improvement, not regression)
+- [x] nav-main.tsx type fix applied (role: UserRole | undefined) -- PASS
+- [x] Middleware composition (Supabase then next-intl) works correctly -- PASS
+
+---
+
+### i18n Compliance
+- [x] All user-facing strings in de.json and en.json -- PASS
+- [x] German umlauts correct: Uberblick->Ueberblick not used, proper ae/oe/ue/ss -- PASS
+- [x] `useRouter` and `Link` imported from `@/i18n/navigation` -- PASS
+- [x] `useSearchParams` imported from `next/navigation` (acceptable: next-intl does not provide this hook) -- PASS
+- [x] All pages under `src/app/[locale]/` -- PASS
+- [ ] BUG-14: WizardProgressBar has hardcoded English `aria-label="Wizard progress"` (wizard-progress-bar.tsx line 24). Should be translated via i18n.
+- [ ] BUG-15: PasswordField has hardcoded English `toggleAriaLabel = "Toggle password visibility"` default (password-field.tsx line 33). Should be passed as translated prop or use i18n.
+
+---
+
+### Bugs Found
+
+#### BUG-1: "Remember Me" Checkbox Non-Functional
+- **Severity:** Medium
+- **Steps to Reproduce:**
+  1. Go to `/login`
+  2. Check "Eingeloggt bleiben" checkbox
+  3. Submit login
+  4. Expected: Session persists differently based on checkbox state
+  5. Actual: `rememberMe` value is captured but never used. Supabase session behavior is identical regardless.
+- **Priority:** Fix in next sprint (requires Supabase session config investigation)
+
+#### BUG-2: returnUrl Lost During Redirect Chain
+- **Severity:** Medium
+- **Steps to Reproduce:**
+  1. Visit `/dashboard?returnUrl=/some-page` while unauthenticated
+  2. Get redirected to `/login?returnUrl=/some-page`
+  3. Login with unverified email
+  4. Get redirected to `/verify-email` -- returnUrl is lost
+  5. Expected: returnUrl preserved through verify-email and onboarding redirects
+  6. Actual: returnUrl parameter dropped at verify-email redirect
+- **Priority:** Fix before deployment
+
+#### BUG-3: Login Form Missing Zod Validation
+- **Severity:** Low
+- **Steps to Reproduce:**
+  1. Inspect login/page.tsx
+  2. `loginSchema` is defined in validations/auth.ts but never used
+  3. Expected: Zod resolver used with react-hook-form for consistent validation
+  4. Actual: Only bare `{ required: true }` rules used
+- **Impact:** Low risk since Supabase validates server-side, but violates spec requirement for "Client-seitige Validierung mit Zod vor dem API-Aufruf"
+- **Priority:** Fix in next sprint
+
+#### BUG-4: Registration Form Missing Zod Resolver
+- **Severity:** Low
+- **Steps to Reproduce:**
+  1. Inspect register/page.tsx
+  2. `registerSchema` imported only as TYPE, not used as validator
+  3. Validation is duplicated manually via react-hook-form validate rules
+  4. Expected: Zod schema used as single source of truth via `zodResolver`
+  5. Actual: Duplicated validation logic
+- **Priority:** Fix in next sprint
+
+#### BUG-5: Invitation Token Infrastructure Missing
+- **Severity:** Medium
+- **Steps to Reproduce:**
+  1. No Route Handler exists to set the inviteToken httpOnly cookie
+  2. Registration page does not capture inviteToken from URL params
+  3. Expected: Full invite flow as documented in spec
+  4. Actual: Only the onboarding page reads from `document.cookie`, but nothing sets it
+- **Note:** This may be intentionally deferred to PROJ-5 (Athleten-Management). If so, the spec should document this explicitly.
+- **Priority:** Clarify scope, fix before PROJ-5
+
+#### BUG-6: Onboarding Step 2 Name Fields Not Validated
+- **Severity:** Medium
+- **Steps to Reproduce:**
+  1. Reach onboarding Step 2
+  2. Clear the pre-filled name fields or enter invalid characters
+  3. Click "Weiter"
+  4. Expected: Validation error for empty/invalid names
+  5. Actual: Empty or invalid names saved directly to DB
+- **Priority:** Fix before deployment
+
+#### BUG-7: Skip Step 2 Does Not Update DB onboarding_step
+- **Severity:** Medium
+- **Steps to Reproduce:**
+  1. Complete Step 1 (consent)
+  2. Click "Ueberspringen" on Step 2
+  3. Close browser before completing Step 3
+  4. Reopen wizard
+  5. Expected: Wizard resumes at Step 3
+  6. Actual: Wizard resumes at Step 2 (DB still has `onboarding_step = 2`)
+- **Priority:** Fix before deployment
+
+#### BUG-8: AuthErrorBoundary Component Missing
+- **Severity:** Low
+- **Steps to Reproduce:**
+  1. Check component list: `AuthErrorBoundary` listed in spec section "I) Neue Komponenten"
+  2. Search codebase: component does not exist
+  3. Expected: Dedicated fallback UI for Supabase unreachable
+  4. Actual: Generic catch blocks handle errors with text messages only
+- **Priority:** Fix in next sprint
+
+#### BUG-9: Onboarding Name Fields Missing Server-Side Validation
+- **Severity:** Medium
+- **Steps to Reproduce:**
+  1. In onboarding Step 2, names are written directly to Supabase `profiles` table
+  2. No server-side validation or HTML escaping applied
+  3. Expected: Server-side Zod validation + HTML escaping per spec
+  4. Actual: Values passed directly to `supabase.from("profiles").update()`
+- **Note:** Supabase parameterized queries prevent SQL injection. React auto-escaping prevents stored XSS on display. But spec explicitly requires server-side validation.
+- **Priority:** Fix before deployment
+
+#### BUG-10: No Server-Side Magic-Byte Validation for Avatars
+- **Severity:** Medium
+- **Steps to Reproduce:**
+  1. Avatar upload only checks client-side MIME type
+  2. A crafted HTTP request could bypass client validation
+  3. Expected: Server-side magic-byte validation before Storage upload
+  4. Actual: Only client-side check via `file.type`
+- **Note:** Supabase Storage bucket config may enforce allowed types at the bucket level, providing partial mitigation.
+- **Priority:** Fix before deployment
+
+#### BUG-11: Incomplete returnUrl Open Redirect Prevention
+- **Severity:** High
+- **Steps to Reproduce:**
+  1. Navigate to `/login?returnUrl=//evil.com`
+  2. Login successfully
+  3. Expected: Redirect blocked or sanitized
+  4. Actual: `//evil.com` passes validation (starts with `/`, does not contain `://`) and user is redirected to `evil.com` via protocol-relative URL
+- **Fix:** Add check `!url.startsWith("//")` to `isValidReturnUrl()`
+- **Priority:** Fix before deployment
+
+#### BUG-12: No Rate Limiting on set-role API
+- **Severity:** Medium
+- **Steps to Reproduce:**
+  1. Send rapid POST requests to `/api/auth/set-role`
+  2. Expected: Rate limiting after N requests
+  3. Actual: No rate limiting implemented
+- **Note:** Idempotency check and auth requirement reduce risk. Supabase Auth has its own rate limits on admin API calls.
+- **Priority:** Fix in next sprint
+
+#### BUG-13: inviteToken Not httpOnly Cookie
+- **Severity:** Low (no invite flow implemented yet)
+- **Steps to Reproduce:**
+  1. Onboarding reads inviteToken via `document.cookie` (JavaScript-accessible)
+  2. Expected: httpOnly cookie set via Route Handler (not accessible to JS)
+  3. Actual: Not httpOnly, violates spec security requirement
+- **Note:** Moot until invite token infrastructure is built (BUG-5)
+- **Priority:** Fix with BUG-5
+
+#### BUG-14: WizardProgressBar Hardcoded English aria-label
+- **Severity:** Low
+- **Steps to Reproduce:**
+  1. Open onboarding wizard in German locale
+  2. Inspect `<nav>` element
+  3. Expected: German aria-label
+  4. Actual: `aria-label="Wizard progress"` (English)
+- **Priority:** Fix in next sprint
+
+#### BUG-15: PasswordField Hardcoded English Toggle aria-label
+- **Severity:** Low
+- **Steps to Reproduce:**
+  1. Open login page in German locale
+  2. Inspect password toggle button
+  3. Expected: German aria-label for toggle
+  4. Actual: Default `aria-label="Toggle password visibility"` (English)
+- **Priority:** Fix in next sprint
+
+---
+
+### Summary
+
+| Category | Result |
+|----------|--------|
+| **Acceptance Criteria** | 38/45 passed (7 failed/not implemented) |
+| **Edge Cases** | 12/14 passed (2 not implemented) |
+| **Security Audit** | 20/24 passed (4 findings) |
+| **i18n Compliance** | 5/7 passed (2 hardcoded aria-labels) |
+| **Regression (PROJ-1/2/3)** | All PASS |
+| **Build + Lint** | PASS |
+
+**Bugs Found:** 15 total
+- **Critical:** 0
+- **High:** 1 (BUG-11: Open Redirect via `//evil.com`)
+- **Medium:** 7 (BUG-1, BUG-2, BUG-5, BUG-6, BUG-7, BUG-9, BUG-10, BUG-12)
+- **Low:** 7 (BUG-3, BUG-4, BUG-8, BUG-13, BUG-14, BUG-15)
+
+**Security:** 1 High-severity finding (open redirect), 3 Medium findings (missing server-side validation, no rate limiting, no magic-byte check)
+
+**Production Ready:** NO
+
+**Recommendation:** Fix BUG-11 (open redirect -- High) and the Medium-severity bugs BUG-2, BUG-6, BUG-7, BUG-9 before deployment. The remaining Medium and Low bugs can be addressed in a follow-up sprint.
 
 ## Deployment
 _To be added by /deploy_

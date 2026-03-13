@@ -1,5 +1,6 @@
 import { Dumbbell } from "lucide-react";
 import { getTranslations } from "next-intl/server";
+import { AuthErrorBoundary } from "@/components/auth-error-boundary";
 
 export default async function AuthLayout({
   children,
@@ -24,7 +25,9 @@ export default async function AuthLayout({
       </div>
 
       {/* Content card */}
-      <div className="w-full max-w-[420px]">{children}</div>
+      <div className="w-full max-w-[420px]">
+        <AuthErrorBoundary>{children}</AuthErrorBoundary>
+      </div>
     </div>
   );
 }

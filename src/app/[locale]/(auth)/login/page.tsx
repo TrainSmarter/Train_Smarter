@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { Loader2, Mail } from "lucide-react";
@@ -14,10 +15,11 @@ import { PasswordField } from "@/components/password-field";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { createClient } from "@/lib/supabase/client";
-import type { LoginFormData } from "@/lib/validations/auth";
+import { loginSchema, type LoginFormData } from "@/lib/validations/auth";
 
 export default function LoginPage() {
   const t = useTranslations("auth.login");
+  const tAuth = useTranslations("auth");
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnUrl = searchParams.get("returnUrl");
@@ -32,6 +34,7 @@ export default function LoginPage() {
     watch,
     formState: { errors },
   } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
       password: "",
@@ -55,7 +58,8 @@ export default function LoginPage() {
 
       if (authError) {
         if (authError.message === "Email not confirmed" || authError.code === "email_not_confirmed") {
-          router.push(`/verify-email?email=${encodeURIComponent(data.email)}`);
+          const verifyUrl = `/verify-email?email=${encodeURIComponent(data.email)}${returnUrl ? `&returnUrl=${encodeURIComponent(returnUrl)}` : ""}`;
+          router.push(verifyUrl);
           return;
         }
 
@@ -68,8 +72,15 @@ export default function LoginPage() {
         return;
       }
 
+      // Store remember-me preference for session management
+      if (!data.rememberMe) {
+        sessionStorage.setItem("ts_session_only", "true");
+      } else {
+        sessionStorage.removeItem("ts_session_only");
+      }
+
       // Redirect to returnUrl or dashboard
-      const destination = returnUrl && returnUrl.startsWith("/") && !returnUrl.includes("://")
+      const destination = returnUrl && returnUrl.startsWith("/") && !returnUrl.startsWith("//") && !returnUrl.includes("://")
         ? returnUrl
         : "/dashboard";
       router.push(destination);
@@ -102,7 +113,7 @@ export default function LoginPage() {
             required
             autoComplete="email"
             error={errors.email?.message}
-            {...register("email", { required: true })}
+            {...register("email")}
           />
 
           <PasswordField
@@ -111,7 +122,8 @@ export default function LoginPage() {
             required
             autoComplete="current-password"
             error={errors.password?.message}
-            {...register("password", { required: true })}
+            toggleAriaLabel={tAuth("togglePassword")}
+            {...register("password")}
           />
 
           <div className="flex items-center justify-between">

@@ -53,7 +53,8 @@ function isProtectedRoute(pathname: string): boolean {
  * Only allows same-origin relative paths (starts with /, no ://).
  */
 function isValidReturnUrl(url: string): boolean {
-  return url.startsWith("/") && !url.includes("://");
+  // Must start with exactly one slash (blocks protocol-relative //evil.com)
+  return url.startsWith("/") && !url.startsWith("//") && !url.includes("://");
 }
 
 export default async function middleware(request: NextRequest) {
@@ -99,6 +100,11 @@ export default async function middleware(request: NextRequest) {
     const verifyUrl = new URL(`/${locale}/verify-email`, request.url);
     if (user.email) {
       verifyUrl.searchParams.set("email", user.email);
+    }
+    // Preserve returnUrl through the redirect chain
+    const returnUrl = request.nextUrl.searchParams.get("returnUrl");
+    if (returnUrl && isValidReturnUrl(returnUrl)) {
+      verifyUrl.searchParams.set("returnUrl", returnUrl);
     }
     return NextResponse.redirect(verifyUrl);
   }

@@ -14,6 +14,7 @@ import { FormField } from "@/components/form-field";
 import { AvatarUpload } from "@/components/avatar-upload";
 import { RoleSelectCard, type RoleValue } from "@/components/role-select-card";
 import { createClient } from "@/lib/supabase/client";
+import { profileSchema } from "@/lib/validations/auth";
 
 const TOTAL_STEPS = 4;
 
@@ -180,14 +181,39 @@ export default function OnboardingPage() {
 
         setCurrentStep(2);
       } else if (currentStep === 2) {
+        // Validate name fields with Zod
+        const profileResult = profileSchema.safeParse({
+          firstName,
+          lastName,
+          birthDate: birthDate || undefined,
+        });
+        if (!profileResult.success) {
+          setError(t("step2.invalidName"));
+          setIsSubmitting(false);
+          return;
+        }
+
         // Save profile data
         try {
           const { data: { user } } = await supabase.auth.getUser();
           if (user) {
-            // Upload avatar if selected
+            // Upload avatar if selected (with magic-byte validation)
             if (avatarFile) {
+              // Validate magic bytes to prevent disguised file uploads
+              const header = new Uint8Array(await avatarFile.slice(0, 12).arrayBuffer());
+              const isJpeg = header[0] === 0xFF && header[1] === 0xD8 && header[2] === 0xFF;
+              const isPng = header[0] === 0x89 && header[1] === 0x50 && header[2] === 0x4E && header[3] === 0x47;
+              const isWebp = header[0] === 0x52 && header[1] === 0x49 && header[2] === 0x46 && header[3] === 0x46
+                && header[8] === 0x57 && header[9] === 0x45 && header[10] === 0x42 && header[11] === 0x50;
+
+              if (!isJpeg && !isPng && !isWebp) {
+                setError(t("step2.avatarInvalidType"));
+                setIsSubmitting(false);
+                return;
+              }
+
               setIsUploadingAvatar(true);
-              const ext = avatarFile.name.split(".").pop()?.toLowerCase() || "jpg";
+              const ext = isJpeg ? "jpg" : isPng ? "png" : "webp";
               const filePath = `${user.id}/avatar.${ext}`;
 
               // Delete existing avatar files (different extensions)
@@ -316,9 +342,22 @@ export default function OnboardingPage() {
     }
   }
 
-  function handleSkip() {
+  async function handleSkip() {
     setError(null);
     if (currentStep === 2) {
+      // Persist skip to DB for wizard resumption
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await supabase
+            .from("profiles")
+            .update({ onboarding_step: 3 })
+            .eq("id", user.id);
+        }
+      } catch {
+        // Continue even if DB write fails
+      }
       setCurrentStep(3);
     } else if (currentStep === 4) {
       // Finish onboarding when skipping step 4
@@ -347,7 +386,7 @@ export default function OnboardingPage() {
   return (
     <div className="space-y-6">
       {/* Progress bar */}
-      <WizardProgressBar steps={wizardSteps} currentStep={currentStep} />
+      <WizardProgressBar steps={wizardSteps} currentStep={currentStep} ariaLabel={t("wizard.progressLabel")} />
 
       {/* Step counter (mobile) */}
       <p className="text-center text-body-sm text-muted-foreground md:hidden">

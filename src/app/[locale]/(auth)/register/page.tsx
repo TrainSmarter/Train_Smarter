@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
 import { Loader2, Mail, User } from "lucide-react";
 
@@ -19,10 +20,11 @@ import { FormField } from "@/components/form-field";
 import { PasswordField } from "@/components/password-field";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { createClient } from "@/lib/supabase/client";
-import type { RegisterFormData } from "@/lib/validations/auth";
+import { registerSchema, type RegisterFormData } from "@/lib/validations/auth";
 
 export default function RegisterPage() {
   const t = useTranslations("auth.register");
+  const tAuth = useTranslations("auth");
   const router = useRouter();
 
   const [error, setError] = React.useState<string | null>(null);
@@ -31,9 +33,9 @@ export default function RegisterPage() {
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors },
   } = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchema),
     defaultValues: {
       firstName: "",
       lastName: "",
@@ -42,8 +44,6 @@ export default function RegisterPage() {
       confirmPassword: "",
     },
   });
-
-  const password = watch("password");
 
   function getPasswordError(fieldError: { message?: string } | undefined): string | undefined {
     if (!fieldError?.message) return undefined;
@@ -55,12 +55,6 @@ export default function RegisterPage() {
   }
 
   async function onSubmit(data: RegisterFormData) {
-    // Client-side validation
-    if (data.password.length < 8) return;
-    if (!/[A-Z]/.test(data.password)) return;
-    if (!/[0-9]/.test(data.password)) return;
-    if (data.password !== data.confirmPassword) return;
-
     setError(null);
     setIsSubmitting(true);
 
@@ -118,10 +112,7 @@ export default function RegisterPage() {
               required
               autoComplete="given-name"
               error={errors.firstName ? t("invalidName") : undefined}
-              {...register("firstName", {
-                required: true,
-                pattern: /^[\p{L}\s\-']{1,100}$/u,
-              })}
+              {...register("firstName")}
             />
             <FormField
               label={t("lastName")}
@@ -129,10 +120,7 @@ export default function RegisterPage() {
               required
               autoComplete="family-name"
               error={errors.lastName ? t("invalidName") : undefined}
-              {...register("lastName", {
-                required: true,
-                pattern: /^[\p{L}\s\-']{1,100}$/u,
-              })}
+              {...register("lastName")}
             />
           </div>
 
@@ -144,7 +132,7 @@ export default function RegisterPage() {
             required
             autoComplete="email"
             error={errors.email?.message}
-            {...register("email", { required: true })}
+            {...register("email")}
           />
 
           <PasswordField
@@ -154,14 +142,8 @@ export default function RegisterPage() {
             required
             autoComplete="new-password"
             error={getPasswordError(errors.password)}
-            {...register("password", {
-              required: true,
-              minLength: 8,
-              validate: {
-                uppercase: (v) => /[A-Z]/.test(v) || "passwordUppercase",
-                number: (v) => /[0-9]/.test(v) || "passwordNumber",
-              },
-            })}
+            toggleAriaLabel={tAuth("togglePassword")}
+            {...register("password")}
           />
 
           <PasswordField
@@ -174,10 +156,8 @@ export default function RegisterPage() {
                 ? t("passwordsMustMatch")
                 : undefined
             }
-            {...register("confirmPassword", {
-              required: true,
-              validate: (v) => v === password || "passwordsMustMatch",
-            })}
+            toggleAriaLabel={tAuth("togglePassword")}
+            {...register("confirmPassword")}
           />
 
           <Button type="submit" className="w-full" disabled={isSubmitting}>

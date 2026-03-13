@@ -95,6 +95,7 @@
     "brandName": "Train Smarter",
     "brandTagline": "Professionelles Trainingsmanagement",
     "or": "oder",
+    "togglePassword": "Passwort anzeigen/verbergen",
     "login": {
       "title": "Willkommen zurück",
       "subtitle": "Melde dich an, um fortzufahren",
@@ -181,6 +182,11 @@
       "rateLimited": "Bitte warte einen Moment, bevor du eine neue E-Mail anforderst.",
       "backToLogin": "Zurück zum Login"
     },
+    "errorBoundary": {
+      "title": "Service nicht verfügbar",
+      "message": "Der Authentifizierungsdienst ist vorübergehend nicht erreichbar. Bitte versuche es erneut.",
+      "retry": "Erneut versuchen"
+    },
     "callback": {
       "processing": "Wird verarbeitet...",
       "error": "Authentifizierung fehlgeschlagen",
@@ -198,7 +204,8 @@
       "skip": "Überspringen",
       "finish": "Fertig",
       "step": "Schritt {current} von {total}",
-      "submitting": "Wird gespeichert..."
+      "submitting": "Wird gespeichert...",
+      "progressLabel": "Onboarding-Fortschritt"
     },
     "step1": {
       "title": "Datenschutz & Einwilligungen",
@@ -225,7 +232,8 @@
       "avatarUploading": "Wird hochgeladen...",
       "avatarTooLarge": "Datei ist zu groß. Maximal 5 MB.",
       "avatarInvalidType": "Ungültiger Dateityp. Erlaubt: JPEG, PNG, WebP.",
-      "avatarUploadError": "Profilbild konnte nicht hochgeladen werden."
+      "avatarUploadError": "Profilbild konnte nicht hochgeladen werden.",
+      "invalidName": "Bitte gib einen gültigen Namen ein (nur Buchstaben, Bindestriche, max. 100 Zeichen)."
     },
     "step3": {
       "title": "Deine Rolle",

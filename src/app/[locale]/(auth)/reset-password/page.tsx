@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
 import { Loader2, CheckCircle2, AlertTriangle } from "lucide-react";
 import { useSearchParams } from "next/navigation";
@@ -18,12 +19,13 @@ import {
 import { PasswordField } from "@/components/password-field";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { createClient } from "@/lib/supabase/client";
-import type { ResetPasswordFormData } from "@/lib/validations/auth";
+import { resetPasswordSchema, type ResetPasswordFormData } from "@/lib/validations/auth";
 
 type PageState = "loading" | "form" | "success" | "expired" | "error";
 
 export default function ResetPasswordPage() {
   const t = useTranslations("auth.resetPassword");
+  const tAuth = useTranslations("auth");
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -34,13 +36,11 @@ export default function ResetPasswordPage() {
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors },
   } = useForm<ResetPasswordFormData>({
+    resolver: zodResolver(resetPasswordSchema),
     defaultValues: { password: "", confirmPassword: "" },
   });
-
-  const password = watch("password");
 
   // Exchange PKCE code for session on mount
   React.useEffect(() => {
@@ -93,8 +93,6 @@ export default function ResetPasswordPage() {
   }, [searchParams]);
 
   async function onSubmit(data: ResetPasswordFormData) {
-    if (data.password !== data.confirmPassword) return;
-
     setError(null);
     setIsSubmitting(true);
 
@@ -227,14 +225,8 @@ export default function ResetPasswordPage() {
             required
             autoComplete="new-password"
             error={errors.password?.message}
-            {...register("password", {
-              required: true,
-              minLength: 8,
-              validate: {
-                uppercase: (v) => /[A-Z]/.test(v) || "passwordUppercase",
-                number: (v) => /[0-9]/.test(v) || "passwordNumber",
-              },
-            })}
+            toggleAriaLabel={tAuth("togglePassword")}
+            {...register("password")}
           />
 
           <PasswordField
@@ -245,10 +237,8 @@ export default function ResetPasswordPage() {
             error={
               errors.confirmPassword ? t("passwordsMustMatch") : undefined
             }
-            {...register("confirmPassword", {
-              required: true,
-              validate: (v) => v === password || "passwordsMustMatch",
-            })}
+            toggleAriaLabel={tAuth("togglePassword")}
+            {...register("confirmPassword")}
           />
 
           <Button type="submit" className="w-full" disabled={isSubmitting}>

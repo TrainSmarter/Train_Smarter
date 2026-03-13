@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { AppHeader } from "@/components/app-header";
+import { SessionManager } from "@/components/session-manager";
 
 export default async function ProtectedLayout({
   children,
@@ -16,6 +17,7 @@ export default async function ProtectedLayout({
 
   return (
     <SidebarProvider defaultOpen={defaultOpen}>
+      <SessionManager />
       <AppSidebar />
       <SidebarInset>
         <AppHeader />

@@ -95,6 +95,7 @@
     "brandName": "Train Smarter",
     "brandTagline": "Professional Training Management",
     "or": "or",
+    "togglePassword": "Toggle password visibility",
     "login": {
       "title": "Welcome back",
       "subtitle": "Sign in to continue",
@@ -181,6 +182,11 @@
       "rateLimited": "Please wait a moment before requesting another email.",
       "backToLogin": "Back to login"
     },
+    "errorBoundary": {
+      "title": "Service unavailable",
+      "message": "The authentication service is temporarily unavailable. Please try again.",
+      "retry": "Try again"
+    },
     "callback": {
       "processing": "Processing...",
       "error": "Authentication failed",
@@ -198,7 +204,8 @@
       "skip": "Skip",
       "finish": "Finish",
       "step": "Step {current} of {total}",
-      "submitting": "Saving..."
+      "submitting": "Saving...",
+      "progressLabel": "Onboarding progress"
     },
     "step1": {
       "title": "Privacy & Consent",
@@ -225,7 +232,8 @@
       "avatarUploading": "Uploading...",
       "avatarTooLarge": "File is too large. Maximum 5 MB.",
       "avatarInvalidType": "Invalid file type. Allowed: JPEG, PNG, WebP.",
-      "avatarUploadError": "Could not upload profile picture."
+      "avatarUploadError": "Could not upload profile picture.",
+      "invalidName": "Please enter a valid name (letters, hyphens only, max 100 characters)."
     },
     "step3": {
       "title": "Your Role",
