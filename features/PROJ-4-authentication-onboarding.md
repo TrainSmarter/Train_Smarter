@@ -1,8 +1,8 @@
 # PROJ-4: Authentication & Onboarding
 
-## Status: Planned
+## Status: In Progress
 **Created:** 2026-03-12
-**Last Updated:** 2026-03-12
+**Last Updated:** 2026-03-13
 
 ## Role Architecture Decision (Phase 1 — implemented in PROJ-3)
 > **IMPORTANT:** This spec governs how role data is stored and managed. The following decisions were made before implementation to ensure future-proofness:
@@ -117,7 +117,162 @@ Komplettes Authentifizierungssystem mit Supabase Auth: Registrierung, Login, Pas
 <!-- Sections below are added by subsequent skills -->
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+
+**Designed:** 2026-03-13
+
+### A) Component Structure
+
+```
+src/app/[locale]/
+│
+├── (auth)/                             ← Unauthenticated-only layout (no sidebar)
+│   ├── login/page.tsx                  — Login form
+│   ├── register/page.tsx               — Registration form
+│   ├── forgot-password/page.tsx        — Password reset request
+│   ├── reset-password/page.tsx         — New password (via email link)
+│   └── verify-email/page.tsx           — "Check your inbox" info screen
+│
+└── (protected)/
+    └── onboarding/page.tsx             — Multi-step Wizard (client component)
+        ├── OnboardingWizard            ← Orchestrates steps + progress bar
+        │   ├── WizardProgressBar       — Step indicator (1 of 4)
+        │   ├── Step1Consents           — DSGVO checkboxes (required, non-skippable)
+        │   ├── Step2Profile            — Name (prefilled), Geburtsdatum, Avatar upload
+        │   ├── Step3RoleSelect         — "Ich bin Trainer" / "Ich bin Athlet"
+        │   ├── Step4Trainer            — Optional: Ersten Athleten einladen
+        │   └── Step4Athlete            — Optional: Trainer-Einladungscode eingeben
+        └── [Reuses: FormField, Modal, Button, Input, Avatar from PROJ-2]
+
+src/middleware.ts                       — Edge route guard (runs before every request)
+src/lib/supabase/
+    ├── client.ts                       — Browser-side Supabase client
+    ├── server.ts                       — Server-side Supabase client (cookies)
+    └── middleware.ts                   — Session refresh helper for middleware
+
+src/app/api/auth/
+    └── set-role/route.ts               — Next.js Route Handler: calls Edge Function
+
+Supabase Edge Function:
+    └── set-user-role                   — Sets app_metadata.role via service-role key
+```
+
+### B) Data Model
+
+**Supabase Auth (built-in, managed by Supabase):**
+```
+auth.users
+├── id: uuid (primary key)
+├── email: text
+├── email_confirmed_at: timestamp | null   ← email verification state
+├── app_metadata.role: "TRAINER" | "ATHLETE"   ← set by Edge Function only
+└── app_metadata.is_platform_admin: boolean    ← manual flag, default false
+```
+
+**profiles table** (created in PROJ-4 backend):
+```
+profiles
+├── id: uuid (FK → auth.users, 1:1, CASCADE DELETE)
+├── first_name: text (max 100 chars, letters/spaces/hyphens only)
+├── last_name: text (max 100 chars, letters/spaces/hyphens only)
+├── avatar_url: text | null              ← path in Supabase Storage
+├── birth_date: date | null
+└── onboarding_completed: boolean (default: false)
+```
+
+**user_consents table** (schema defined in PROJ-11, inserted in PROJ-4):
+```
+user_consents
+├── user_id: uuid (FK → auth.users)
+├── terms_accepted: boolean              ← required, blocks wizard Step 1
+├── body_data_consent: boolean           ← opt-in, default false
+├── nutrition_consent: boolean           ← opt-in, default false
+└── consented_at: timestamp
+```
+
+**Supabase Storage Bucket: `avatars`**
+```
+avatars/{user_id}/avatar.{jpg|png|webp}
+├── Max size: 5 MB (client-side check before upload)
+├── Accepted types: JPG, PNG, WebP
+├── Server-side resize: 400×400px (via Supabase Image Transform)
+└── RLS: authenticated users can only write their own folder
+```
+
+### C) Middleware Route Guard Logic
+
+The `middleware.ts` edge function intercepts every request and applies these rules in order:
+
+| Condition | Redirect To |
+|-----------|-------------|
+| No session + protected route | `/login` |
+| Session + email not verified | `/verify-email` |
+| Session + `onboarding_completed = false` | `/onboarding` |
+| Session + visiting `/login` or `/register` | `/dashboard` |
+| All good | Continue to requested page |
+
+This means **no auth state can leak** to protected pages, and **no infinite redirects** are possible — the `/onboarding` and `/verify-email` routes are excluded from the onboarding/verification guards respectively.
+
+### D) Role-Setting Flow (Security Critical)
+
+```
+Browser                Next.js API Route         Supabase Edge Function
+  │                         │                            │
+  │── POST /api/auth/set-role ──▶                        │
+  │   { role: "TRAINER" }   │                            │
+  │                         │── invoke Edge Function ──▶ │
+  │                         │                            │── adminUpdateUserById()
+  │                         │                            │   (service-role key)
+  │                         │◀── { success: true } ──── │
+  │◀── 200 OK ──────────── │                            │
+  │                         │
+
+The service-role key NEVER leaves the server environment.
+The browser only knows the call succeeded or failed.
+```
+
+### E) Tech Decisions
+
+| Decision | Chosen Approach | Why |
+|----------|----------------|-----|
+| Auth provider | Supabase Auth | Password hashing, email verification, rate limiting, and JWT rotation are built-in — no custom implementation needed |
+| Route protection | Next.js `middleware.ts` (edge) | Runs before page render on the server edge — protected pages never flash to unauthenticated users. More reliable than client-side guards |
+| Role storage | `app_metadata` via Edge Function | `user_metadata` is writable by any authenticated user (privilege escalation risk). `app_metadata` requires the service-role key — server-only |
+| Session management | `@supabase/ssr` (cookie-based) | The standard Supabase package for Next.js App Router. Cookie sessions work in middleware + Server Components without a client waterfall |
+| Onboarding state | `profiles.onboarding_completed` in DB | Survives browser closes and device switches. Client-writable `user_metadata` would be a bypass risk |
+| Consent storage | `user_consents` table | Separate table with timestamps — needed for DSGVO audit trail. Cannot be in `profiles` (different legal requirement) |
+| Avatar resize | Supabase Image Transform | Serverless, no custom Lambda needed. Resizes to 400×400px on-the-fly via URL parameter |
+
+### F) Dependencies to Install
+
+| Package | Purpose | Status |
+|---------|---------|--------|
+| `@supabase/ssr` | Server-side Supabase client for Next.js App Router (cookies-based sessions, middleware helper) | **NOT installed — install before PROJ-4 backend** |
+| `@supabase/supabase-js` | Supabase client | Already installed |
+| `react-hook-form` | Form state management | Already installed |
+| `zod` | Schema validation | Already installed |
+
+### G) Pages That Need to Be Created
+
+| Route | Type | Auth State |
+|-------|------|------------|
+| `/[locale]/(auth)/login` | Server + Client Form | Unauthenticated only |
+| `/[locale]/(auth)/register` | Server + Client Form | Unauthenticated only |
+| `/[locale]/(auth)/forgot-password` | Client Form | Unauthenticated only |
+| `/[locale]/(auth)/reset-password` | Client Form | Via email link |
+| `/[locale]/(auth)/verify-email` | Server | Authenticated, unverified |
+| `/[locale]/(protected)/onboarding` | Client Wizard | Authenticated, unverified onboarding |
+| `/api/auth/set-role` | Route Handler | Authenticated |
+
+### H) New i18n Namespaces Required
+
+```
+auth.login.*        — Login page strings
+auth.register.*     — Registration page strings
+auth.forgotPassword.*
+auth.resetPassword.*
+auth.verifyEmail.*
+onboarding.*        — All 4 wizard steps
+```
 
 ## QA Test Results
 _To be added by /qa_
