@@ -105,10 +105,10 @@ export interface ConfirmDialogProps {
   title: string
   /** Descriptive message */
   message: string
-  /** Confirm button label */
-  confirmLabel?: string
-  /** Cancel button label */
-  cancelLabel?: string
+  /** Confirm button label (required — must be translated by caller) */
+  confirmLabel: string
+  /** Cancel button label (required — must be translated by caller) */
+  cancelLabel: string
   /** Callback when user confirms */
   onConfirm?: () => void
   /** Callback when user cancels */
@@ -123,8 +123,8 @@ function ConfirmDialog({
   variant = "primary",
   title,
   message,
-  confirmLabel = "Bestätigen",
-  cancelLabel = "Abbrechen",
+  confirmLabel,
+  cancelLabel,
   onConfirm,
   onCancel,
   loading = false,

@@ -8,6 +8,7 @@
     "training": "Training",
     "feedbackMonitoring": "Feedback & Monitoring",
     "organisation": "Organisation",
+    "athletes": "Athleten",
     "admin": "Admin",
     "account": "Account",
     "settings": "Einstellungen"
@@ -263,5 +264,23 @@
       "codeAccepted": "Einladungscode akzeptiert!",
       "verifyingCode": "Wird überprüft..."
     }
+  },
+  "common": {
+    "confirm": "Bestätigen",
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "close": "Schließen",
+    "search": "Suche",
+    "sort": "Sortieren",
+    "filter": "Filtern",
+    "loading": "Wird geladen...",
+    "error": "Ein Fehler ist aufgetreten",
+    "retry": "Erneut versuchen",
+    "back": "Zurück",
+    "next": "Weiter",
+    "noResults": "Keine Ergebnisse gefunden",
+    "togglePassword": "Passwort ein-/ausblenden"
   }
 }

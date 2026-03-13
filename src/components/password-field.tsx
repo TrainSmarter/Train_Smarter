@@ -18,8 +18,8 @@ export interface PasswordFieldProps
   error?: string;
   /** Additional class for the wrapper */
   wrapperClassName?: string;
-  /** Aria label for the toggle button */
-  toggleAriaLabel?: string;
+  /** Aria label for the toggle button (required — must be translated by caller) */
+  toggleAriaLabel: string;
 }
 
 const PasswordField = React.forwardRef<HTMLInputElement, PasswordFieldProps>(
@@ -30,7 +30,7 @@ const PasswordField = React.forwardRef<HTMLInputElement, PasswordFieldProps>(
       helperText,
       error,
       wrapperClassName,
-      toggleAriaLabel = "Toggle password visibility",
+      toggleAriaLabel,
       id: providedId,
       required,
       disabled,

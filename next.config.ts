@@ -4,6 +4,7 @@ import createNextIntlPlugin from "next-intl/plugin";
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "https://*.supabase.co";
+const isDev = process.env.NODE_ENV === "development";
 
 const nextConfig: NextConfig = {
   async headers() {
@@ -35,7 +36,7 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // unsafe-eval required by Next.js dev; tighten in prod
+              `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
               `connect-src 'self' ${supabaseUrl} https://*.supabase.co wss://*.supabase.co`,
               "img-src 'self' data: blob: https:",
               "font-src 'self'",

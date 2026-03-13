@@ -110,9 +110,7 @@ export default async function middleware(request: NextRequest) {
   }
 
   // 5. Session + onboarding not completed -> redirect to /onboarding
-  // Check app_metadata for onboarding_completed flag
-  // Note: In production, this would check the profiles table or a JWT claim.
-  // For now, we check user_metadata which will be set after onboarding.
+  // Uses app_metadata (server-only writable via service-role key) — not bypassable by client.
   if (
     user &&
     user.email_confirmed_at &&
@@ -120,7 +118,7 @@ export default async function middleware(request: NextRequest) {
     !isOnboardingRoute(cleanPathname) &&
     !isVerifyEmailRoute(cleanPathname)
   ) {
-    const onboardingCompleted = user.user_metadata?.onboarding_completed === true;
+    const onboardingCompleted = user.app_metadata?.onboarding_completed === true;
     if (!onboardingCompleted) {
       const returnUrl = request.nextUrl.searchParams.get("returnUrl");
       const onboardingUrl = new URL(`/${locale}/onboarding`, request.url);
@@ -131,7 +129,22 @@ export default async function middleware(request: NextRequest) {
     }
   }
 
-  // 6. Run next-intl middleware on the supabase response
+  // 6. Role-based route protection
+  if (user && user.app_metadata?.onboarding_completed) {
+    const roles = (user.app_metadata?.roles as string[]) ?? [];
+
+    // Trainer-only routes
+    if (cleanPathname.startsWith("/organisation") && !roles.includes("TRAINER")) {
+      return NextResponse.redirect(new URL(`/${locale}/dashboard`, request.url));
+    }
+
+    // Admin-only routes
+    if (cleanPathname.startsWith("/admin") && user.app_metadata?.is_platform_admin !== true) {
+      return NextResponse.redirect(new URL(`/${locale}/dashboard`, request.url));
+    }
+  }
+
+  // 7. Run next-intl middleware on the supabase response
   const intlResponse = intlMiddleware(request);
 
   // Merge cookies from supabase response into intl response

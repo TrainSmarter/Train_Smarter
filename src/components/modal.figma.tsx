@@ -60,6 +60,6 @@ figma.connect(ConfirmDialog, "https://www.figma.com/design/AxOnJViNOMcviAAUmcudh
     }),
   },
   example: ({ title, message, variant }) => (
-    <ConfirmDialog open title={title} message={message} variant={variant} onConfirm={() => {}} onCancel={() => {}} />
+    <ConfirmDialog open title={title} message={message} variant={variant} confirmLabel="Confirm" cancelLabel="Cancel" onConfirm={() => {}} onCancel={() => {}} />
   ),
 })

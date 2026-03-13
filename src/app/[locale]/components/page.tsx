@@ -661,6 +661,7 @@ export default function ComponentLibraryPage() {
             title="&Auml;nderungen speichern?"
             message="M&ouml;chtest du die &Auml;nderungen am Trainingsprogramm speichern?"
             confirmLabel="Speichern"
+            cancelLabel="Abbrechen"
             onConfirm={() => setConfirmOpen(false)}
             onCancel={() => setConfirmOpen(false)}
           />
@@ -672,6 +673,7 @@ export default function ComponentLibraryPage() {
             title="Athleten l&ouml;schen?"
             message="Diese Aktion kann nicht r&uuml;ckg&auml;ngig gemacht werden. Alle Trainingsdaten dieses Athleten werden gel&ouml;scht."
             confirmLabel="Endg&uuml;ltig l&ouml;schen"
+            cancelLabel="Abbrechen"
             onConfirm={() => setConfirmDangerOpen(false)}
             onCancel={() => setConfirmDangerOpen(false)}
           />

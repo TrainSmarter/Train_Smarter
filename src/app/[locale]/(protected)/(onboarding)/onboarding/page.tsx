@@ -15,6 +15,7 @@ import { AvatarUpload } from "@/components/avatar-upload";
 import { RoleSelectCard, type RoleValue } from "@/components/role-select-card";
 import { createClient } from "@/lib/supabase/client";
 import { profileSchema } from "@/lib/validations/auth";
+import { uploadAvatar } from "@/hooks/use-avatar-upload";
 
 const TOTAL_STEPS = 4;
 
@@ -82,17 +83,17 @@ export default function OnboardingPage() {
           setLastName(user.user_metadata.last_name);
         }
 
-        // Check if user is an invited athlete (via cookie)
-        // This would be set by a route handler when processing invite links
-        const inviteToken = document.cookie
-          .split("; ")
-          .find((row) => row.startsWith("inviteToken="))
-          ?.split("=")[1];
-
-        if (inviteToken) {
-          setIsInvitedAthlete(true);
-          setSelectedRole("ATHLETE");
-          setInviteCode(inviteToken);
+        // Check if user is an invited athlete (via httpOnly cookie, read server-side)
+        try {
+          const tokenRes = await fetch("/api/auth/invite-token", { method: "POST" });
+          const { token: inviteToken } = await tokenRes.json();
+          if (inviteToken) {
+            setIsInvitedAthlete(true);
+            setSelectedRole("ATHLETE");
+            setInviteCode(inviteToken);
+          }
+        } catch {
+          // No invite token — continue normally
         }
 
         // Try to load profile from DB for wizard resumption
@@ -205,49 +206,18 @@ export default function OnboardingPage() {
         try {
           const { data: { user } } = await supabase.auth.getUser();
           if (user) {
-            // Upload avatar if selected (with magic-byte validation)
+            // Upload avatar if selected (uses extracted hook with magic-byte validation)
             if (avatarFile) {
-              // Validate magic bytes to prevent disguised file uploads
-              const header = new Uint8Array(await avatarFile.slice(0, 12).arrayBuffer());
-              const isJpeg = header[0] === 0xFF && header[1] === 0xD8 && header[2] === 0xFF;
-              const isPng = header[0] === 0x89 && header[1] === 0x50 && header[2] === 0x4E && header[3] === 0x47;
-              const isWebp = header[0] === 0x52 && header[1] === 0x49 && header[2] === 0x46 && header[3] === 0x46
-                && header[8] === 0x57 && header[9] === 0x45 && header[10] === 0x42 && header[11] === 0x50;
-
-              if (!isJpeg && !isPng && !isWebp) {
+              setIsUploadingAvatar(true);
+              const { path, error: uploadErr } = await uploadAvatar(user.id, avatarFile);
+              if (uploadErr === "INVALID_TYPE") {
                 setError(t("step2.avatarInvalidType"));
                 setIsSubmitting(false);
+                setIsUploadingAvatar(false);
                 return;
               }
-
-              setIsUploadingAvatar(true);
-              const ext = isJpeg ? "jpg" : isPng ? "png" : "webp";
-              const filePath = `${user.id}/avatar.${ext}`;
-
-              // Delete existing avatar files (different extensions)
-              const { data: existingFiles } = await supabase.storage
-                .from("avatars")
-                .list(user.id);
-
-              if (existingFiles?.length) {
-                await supabase.storage
-                  .from("avatars")
-                  .remove(existingFiles.map((f) => `${user.id}/${f.name}`));
-              }
-
-              const { error: uploadError } = await supabase.storage
-                .from("avatars")
-                .upload(filePath, avatarFile, {
-                  cacheControl: "3600",
-                  upsert: true,
-                });
-
-              if (!uploadError) {
-                setAvatarUrl(filePath);
-                await supabase
-                  .from("profiles")
-                  .update({ avatar_url: filePath })
-                  .eq("id", user.id);
+              if (path) {
+                setAvatarUrl(path);
               }
               setIsUploadingAvatar(false);
             }
@@ -312,7 +282,7 @@ export default function OnboardingPage() {
 
         setCurrentStep(4);
       } else if (currentStep === 4) {
-        // Finish onboarding
+        // Finish onboarding — set onboarding_completed in app_metadata (server-only, not bypassable)
         try {
           const { data: { user } } = await supabase.auth.getUser();
           if (user) {
@@ -323,15 +293,19 @@ export default function OnboardingPage() {
                 onboarding_step: 4,
               })
               .eq("id", user.id);
-
-            // Set onboarding_completed in user_metadata for middleware
-            await supabase.auth.updateUser({
-              data: { onboarding_completed: true },
-            });
-
-            // Refresh session so middleware reads updated JWT before redirect
-            await supabase.auth.refreshSession();
           }
+
+          // Set app_metadata.onboarding_completed via service-role key
+          const response = await fetch("/api/auth/complete-onboarding", {
+            method: "POST",
+          });
+
+          if (!response.ok) {
+            console.error("complete-onboarding failed:", await response.text());
+          }
+
+          // Refresh session so middleware reads updated JWT before redirect
+          await supabase.auth.refreshSession();
         } catch {
           // Continue to dashboard even if DB write fails
         }

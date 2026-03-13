@@ -73,12 +73,19 @@ export const navConfig: NavEntry[] = [
     },
   },
   {
-    type: "item",
-    item: {
+    type: "section",
+    section: {
       labelKey: "organisation",
       icon: Users,
-      path: "/organisation",
+      basePath: "/organisation",
       allowedRoles: ["TRAINER"],
+      items: [
+        {
+          labelKey: "athletes",
+          icon: Users,
+          path: "/organisation/athletes",
+        },
+      ],
     },
   },
   {

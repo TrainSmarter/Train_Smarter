@@ -94,8 +94,12 @@ trainer_athlete_connections
 ├── trainer_id: uuid (FK → auth.users)
 ├── athlete_id: uuid (FK → auth.users)
 ├── status: "pending" | "active" | "rejected" | "disconnected"
-├── invited_at: timestamp
-├── connected_at: timestamp | null
+├── invited_at: timestamptz
+├── invitation_message: text (nullable, max 500)
+├── invitation_expires_at: timestamptz (default: now() + 7 days)
+├── connected_at: timestamptz | null
+├── rejected_at: timestamptz | null
+├── disconnected_at: timestamptz | null
 │
 │  — Granulare Datensichtbarkeit (Athlet kontrolliert diese) —
 ├── can_see_body_data: boolean (default: true)   → Körpermaße, Gewicht
@@ -105,7 +109,14 @@ trainer_athlete_connections
 │  — Granulare Sichtbarkeit (Trainer kontrolliert diese) —
 ├── can_see_analysis: boolean (default: false)   → Athlet sieht eigene Auswertungs-Charts in Feedback (PROJ-6)
 │
+├── created_at: timestamptz
+├── updated_at: timestamptz (trigger)
+├── CHECK (trainer_id != athlete_id)
 └── UNIQUE (trainer_id, athlete_id)
+
+Erweiterungstabellen:
+├── trainer_profiles (id FK→profiles, organization_name, specialization, max_athletes)
+└── athlete_profiles (id FK→profiles, height_cm, sport_type)
 ```
 
 ### Sichtbarkeits-Regeln
