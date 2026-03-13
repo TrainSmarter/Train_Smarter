@@ -28,6 +28,8 @@
 - Dies triggert einen Next.js Route Handler → Supabase Edge Function, die `app_metadata.roles` via service-role key setzt
 - Der Route Handler **verifiziert**, dass (a) der Caller der eigene User ist, (b) noch kein Role-Eintrag existiert (Idempotenz), (c) ein gültiger `user_consents`-Eintrag in der DB vorhanden ist (Consent als Voraussetzung)
 - `is_platform_admin` defaultet auf `false` und wird **nur manuell** per SQL gesetzt (kein UI-Weg)
+- **MFA für `is_platform_admin`-Accounts:** Platform-Admins sollten MFA (TOTP via Supabase Auth MFA) erzwingen; ohne MFA hat ein kompromittierter Admin-Account sofortigen vollen Zugriff → Wird in **PROJ-10 (Admin-Bereich)** implementiert (prüfe `aal` Claim im JWT: `aal2` = MFA bestätigt, `aal1` = nur Passwort)
+- **Club Admin (PROJ-9):** `is_platform_admin` ist plattform-weit, NICHT club-scoped. Ein Club-Administrator (PROJ-9) braucht einen separaten Mechanismus (eigene DB-Tabelle oder `app_metadata.club_admin_of: uuid[]`). Architektur-Entscheidung für Club-Level-Admin wird in PROJ-9 getroffen — dieser Flag ist bewusst NUR für Platform-Admins.
 
 ## Dependencies
 - Requires: PROJ-1 (Design System Foundation)
@@ -59,6 +61,7 @@ Komplettes Authentifizierungssystem mit Supabase Auth: Registrierung, Login, Pas
 - [ ] Figma Screen: Onboarding Step 4 Trainer — Ersten Athleten einladen
 - [ ] Figma Screen: Onboarding Step 4 Athlet — Trainer-Einladungscode eingeben
 - [ ] Figma Screen: Onboarding — Skeleton/Loading-Zustand während initialer Profil-Ladung
+- [ ] Figma Screen: Passwort zurücksetzen — Loading-Zustand während PKCE-Token-Verarbeitung (Spinner vor Formular)
 
 ### Login
 - [ ] Felder: E-Mail, Passwort (toggle Sichtbarkeit via `PasswordField`-Komponente)
@@ -68,8 +71,10 @@ Komplettes Authentifizierungssystem mit Supabase Auth: Registrierung, Login, Pas
 - [ ] "Eingeloggt bleiben" Checkbox (Session-Dauer: 30 Tage — erfordert Supabase Dashboard-Konfiguration)
 - [ ] Link zu "Passwort vergessen"
 - [ ] Link zu "Registrieren"
+- [ ] "Eingeloggt bleiben" NICHT angehakt → Session endet nach Browser-Schließen (Supabase-Standard: kein persistenter Refresh-Token)
 - [ ] Nach Login: Redirect zu `/dashboard` (oder `returnUrl` wenn vorhanden)
 - [ ] `returnUrl` Validierung: nur gleich-ursprüngliche relative Pfade erlaubt (Starts with `/`, kein `://`) — Open Redirect Prevention
+- [ ] `returnUrl` wird durch die gesamte Redirect-Kette erhalten: Login → ggf. verify-email → ggf. onboarding → Zielseite (kein Verlust bei Zwischen-Redirects)
 - [ ] Bereits eingeloggter User der `/login` aufruft → Redirect zu `/dashboard`
 
 ### Registrierung
@@ -84,7 +89,7 @@ Komplettes Authentifizierungssystem mit Supabase Auth: Registrierung, Login, Pas
 ### Passwort Reset
 - [ ] Schritt 1: E-Mail-Adresse eingeben → Supabase `resetPasswordForEmail` mit `redirectTo: NEXT_PUBLIC_SITE_URL + '/auth/callback?type=recovery'`
 - [ ] Bestätigungs-Screen: "Wenn diese E-Mail existiert, erhältst du einen Link" (Account-Enumeration verhindert)
-- [ ] Schritt 2 (`/reset-password`): **Client Component** — liest den PKCE `?code=` URL-Parameter, tauscht ihn via `exchangeCodeForSession()` gegen eine Session, zeigt dann das Formular
+- [ ] Schritt 2 (`/reset-password`): **Client Component** — zeigt Lade-Spinner während `exchangeCodeForSession()` läuft; zeigt erst danach das Passwort-Formular; bei Exchange-Fehler sofortige Fehlermeldung
 - [ ] Schritt 2: Neues Passwort + Bestätigen → Supabase `updateUser`
 - [ ] Nach Reset: Alle anderen aktiven Sessions werden via `signOut({ scope: 'others' })` invalidiert
 - [ ] Nach Reset: Redirect zu `/login` mit Erfolgs-Alert
@@ -119,6 +124,7 @@ Komplettes Authentifizierungssystem mit Supabase Auth: Registrierung, Login, Pas
 - [ ] Step 4 (Athlet): Optionaler Trainer-Einladungscode eingeben; falls `inviteToken`-Cookie vorhanden → automatisch vorausgefüllt
 - [ ] „Überspringen" ab Step 2 möglich — **nur bis Step 3**: Step 3 (Rollenauswahl) ist **nicht** überspringbar (User ohne Rolle = invalider Zustand)
 - [ ] Nach Abschluss: `profiles.onboarding_completed = true` + `profiles.onboarding_step = 4`, Redirect zu `/dashboard`
+- [ ] Rollenauswahl ist **dauerhaft** — kein UI zum Rollenwechsel nach Onboarding (v1 Scope-Entscheidung; Rollenwechsel-Funktion erst in PROJ-11+)
 
 > **Experten-Entscheidung:** Consent-Step gehört in PROJ-4 (Onboarding-UI), nicht nur in PROJ-11. Begründung: Ein Entwickler der PROJ-4 implementiert, muss alle Wizard-Steps kennen — inkl. Consent. PROJ-11 bleibt die Quelle der Wahrheit für das Datenmodell (`user_consents`-Tabelle) und die Datenschutz-Einstellungsseite. PROJ-4 implementiert den Wizard-Step, referenziert PROJ-11 für die Speicherlogik.
 
@@ -150,6 +156,10 @@ Komplettes Authentifizierungssystem mit Supabase Auth: Registrierung, Login, Pas
 - `inviteToken`-Cookie ist bei E-Mail-Verifizierung auf anderem Gerät nicht vorhanden → Wizard lädt ohne Vorausfüllung; Athlet kann Code manuell in Step 4 eingeben
 - `inviteToken` ist gültig aber der einladende Trainer hat seinen Account gelöscht → Token-Consumption schlägt fehl mit "Einladung nicht mehr gültig"
 
+### Account-Verwaltung
+- E-Mail-Adresse ändern nach Verifizierung → Out of Scope für PROJ-4; wird in PROJ-11 (Account-Einstellungen) behandelt
+- Passwort ändern nach Login → Out of Scope für PROJ-4; wird in PROJ-11 (Account-Einstellungen) behandelt
+
 ## Technical Requirements
 
 ### Security
@@ -164,6 +174,13 @@ Komplettes Authentifizierungssystem mit Supabase Auth: Registrierung, Login, Pas
 - Vorname, Nachname und alle Freitext-Felder im Onboarding werden server-seitig HTML-escaped
 - `user_metadata` (first_name, last_name): nur Buchstaben (inkl. Umlaute + internationale Zeichen wie Ó, Ñ, Ü), Leerzeichen, Bindestriche, max. 100 Zeichen — Zod-Regex-Validierung
 - `(auth)/layout.tsx`: `Referrer-Policy: no-referrer` Header gesetzt — verhindert Token-Leak in Referrer-Header an Drittanbieter
+
+### Accessibility (WCAG AA — PRD Erfolgsmetrik)
+- Formular-Fehlermeldungen auf Feld-Ebene: `aria-invalid`, `aria-describedby` (verknüpft mit Fehlertext) — bereits in `FormField` implementiert ✅
+- Formular-Fehlermeldungen auf Form-Ebene (z.B. "Invalid credentials" Alert): `role="alert"` oder in einem `aria-live="polite"`-Container, damit Screen Reader die Meldung vorlesen
+- Multi-Step-Wizard: Fokus-Management bei Step-Wechsel (Fokus auf ersten Eingabefeld des neuen Steps setzen)
+- `WizardProgressBar`: `aria-label` + aktiver Step via `aria-current="step"`
+- `ConsentCheckbox` Links zu AGB/DSE: `target="_blank"` mit `aria-label` das den neuen-Tab-Hinweis enthält
 
 ### Validation
 - Zod-Schemas für alle Formulare, serverseitige Validierung via Next.js Route Handlers
@@ -338,6 +355,7 @@ The browser only knows the call succeeded or failed.
 | Consent-Speicherung | `user_consents` (normalized, append-only) via PROJ-11-Schema | Separates DSGVO Audit-Trail; `policy_version`-Feld ermöglicht Re-Consent wenn AGB/DSE aktualisiert |
 | Avatar-Resize | Supabase Image Transform | Serverless, kein Lambda nötig; 400×400px on-the-fly via URL-Parameter |
 | Avatar-Pfad | `{user_id}/avatar.{ext}` (fixer Pfad pro Extension) | Bei neuem Upload wird alter Extension-Variant gelöscht; Storage-Hygiene |
+| OAuth / Social Login | **Nicht in v1** — kein Google/Apple Login | PRD Non-Goal für v2.0. **Architektonischer Slot vorbereitet:** Supabase Auth unterstützt OAuth nativ (DB-Seite ready). App-seitig muss das Onboarding so gebaut werden, dass OAuth-Nutzer (die ggf. kein first_name/last_name haben) das Profil in Step 2 manuell ausfüllen können — leere Felder statt Fehler. Wenn OAuth später aktiviert wird, muss es zwingend den Onboarding-Wizard durchlaufen (DSGVO Step 1 ist für alle Nutzer Pflicht) |
 
 ### F) Neue Middleware-Regel: Consent-Versionsprüfung
 
