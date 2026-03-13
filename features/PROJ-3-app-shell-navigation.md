@@ -1068,3 +1068,14 @@ Code-level review. All patterns used are well-supported:
 **Inspect:** https://vercel.com/lukas-projects-f87e929f/train-smarter-2
 **Git Tag:** v1.3.0-PROJ-3
 **Includes:** PROJ-1 (Design System), PROJ-2 (UI Components), PROJ-3 (App Shell & Navigation)
+
+### Patch v1.3.1 — 2026-03-13
+**Git Tag:** v1.3.1-patch
+- BUG-P3-13 (High): Fixed nav-main.tsx Link import → `@/i18n/navigation`
+- BUG-P3-14 (Low): Fixed settings nav path `/account/einstellungen` → `/account/settings`
+- BUG-P3-15 (Medium): Aligned `--sidebar-width-icon` CSS to `3.5rem` (matches JS constant)
+- BUG-P1-6 (Low): Restored `latin-ext` font subset
+- BUG-P1-7 / BUG-P2-5 (Medium): Added `showcase` i18n namespace, fixed hardcoded strings
+- BUG-P2-4 (Medium): Fixed showcase-nav Link import → `@/i18n/navigation`
+- Renamed project "Train Smarter 2.0" → "Train Smarter" across all runtime code and docs
+- Note: Vercel project URL `train-smarter-2.vercel.app` requires manual rename in Vercel Dashboard
