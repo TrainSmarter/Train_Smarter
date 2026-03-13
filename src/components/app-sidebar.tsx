@@ -21,7 +21,7 @@ import { UserButton } from "@/components/user-button";
 import { mockUser } from "@/lib/mock-session";
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
-  const role = mockUser.app_metadata.role;
+  const role = mockUser.app_metadata.roles[0];
   const isPlatformAdmin = mockUser.app_metadata.is_platform_admin;
   const { state, toggleSidebar } = useSidebar();
   const isCollapsed = state === "collapsed";

@@ -45,15 +45,15 @@ Aufbau des Design-System-Fundaments als Single Source of Truth — parallel in F
 ## Acceptance Criteria
 
 ### Figma Design Tokens
-- [ ] Figma Variablen-Collection "Color/Primary" erstellt: primary-50 bis primary-900 (Basis: #E05540)
-- [ ] Figma Variablen-Collection "Color/Navy" erstellt: navy-50 bis navy-900 (Basis: #6366F1)
-- [ ] Figma Variablen-Collection "Color/Semantic" erstellt: success (#10B981), warning (#F59E0B), error (#EF4444), info (#3B82F6) je mit light/default/dark Variante
-- [ ] Figma Variablen-Collection "Color/Gray" erstellt: gray-50 bis gray-900
-- [ ] Figma Variablen-Collection "Spacing" erstellt: 4, 8, 12, 16, 20, 24, 32, 40, 48, 64px
-- [ ] Figma Variablen-Collection "Border Radius" erstellt: xs(4), sm(6), md(8), lg(12), xl(16), 2xl(24)
-- [ ] Figma Variablen-Collection "Shadow" erstellt: xs, sm, md, lg, xl
-- [ ] Figma Text Styles erstellt: h1–h5, body-lg, body, body-sm, label, button, caption (mit Poppins)
-- [ ] Light Mode und Dark Mode Varianten in Figma eingerichtet
+- [x] Figma Variablen-Collection "Color/Primary" erstellt: primary-50 bis primary-950 (Basis: Teal #0D9488)
+- [x] Figma Variablen-Collection "Color/Secondary" erstellt: violet-50 bis violet-950 (Basis: Violet #7C3AED)
+- [x] Figma Variablen-Collection "Color/Semantic" erstellt: success (#10B981), warning (#F59E0B), error (#EF4444), info/sky (#0284C7) je mit light/default/dark Variante
+- [x] Figma Variablen-Collection "Color/Gray" erstellt: gray (Warm Slate) 50–950
+- [x] Figma Variablen-Collection "Spacing" erstellt: 4, 8, 12, 16, 20, 24, 32, 40, 48, 64px (8px-Grid)
+- [x] Figma Variablen-Collection "Border Radius" erstellt: xs(2), sm(4), md(6), lg(8), xl(12), 2xl(16)
+- [x] Figma Variablen-Collection "Shadow" erstellt: xs, sm, md, lg, xl + glow-sm, glow-md
+- [x] Figma Text Styles erstellt: display, h1–h5, body-lg, body, body-sm, label, button, caption, mono (mit Inter Variable)
+- [x] Light Mode und Dark Mode Varianten in Figma eingerichtet (4-level surface system)
 
 ### Code: Tailwind & CSS
 - [x] `tailwind.config.ts` enthält alle Farb-Scales (primary, navy, gray, success, warning, error, info)

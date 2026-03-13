@@ -29,7 +29,7 @@ Train Smarter ist eine professionelle Trainingsmanagement-Plattform für Athleti
 | P0 (MVP) | PROJ-1: Design System Foundation | Deployed |
 | P0 (MVP) | PROJ-2: UI Component Library | Deployed |
 | P0 (MVP) | PROJ-3: App Shell & Navigation | Deployed |
-| P0 (MVP) | PROJ-4: Authentication & Onboarding | Planned |
+| P0 (MVP) | PROJ-4: Authentication & Onboarding | In Progress |
 | P0 (MVP) | PROJ-5: Athleten-Management (Organisation) | Planned |
 | P0 (MVP) | PROJ-6: Feedback & Monitoring | Planned |
 | P1 | PROJ-7: Training Workspace & Periodisierung | Planned |

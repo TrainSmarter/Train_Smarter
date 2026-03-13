@@ -59,7 +59,9 @@ All code components have been implemented as composition components in `src/comp
 ### Deviations from Spec
 - Figma deliverables (all "Figma:" acceptance criteria) are outside the scope of frontend code implementation. These need to be done in Figma separately.
 - Icons use `lucide-react` (already in dependencies) instead of Heroicons — consistent with shadcn/ui convention.
-- Focus ring uses `ring-ring` (CSS variable, maps to primary orange) rather than `ring-navy-600` — consistent with design system tokens from PROJ-1.
+- Focus ring uses `ring-ring` (CSS variable, maps to Teal primary) rather than `ring-navy-600` (old brand color, removed) — consistent with design system tokens from PROJ-1.
+- **PasswordField must be a standalone component** — `FormField.iconRight` is rendered in a `div` with `pointer-events-none`; it cannot hold an interactive eye-toggle. Additionally, on error state `{hasError ? <AlertCircle> : iconRight}` means the eye-toggle disappears when validation fails. `PasswordField` is specified in PROJ-4 as a fully standalone component, not a `FormField` prop extension.
+- **ProgressRing React wrapper gap** — `.progress-ring` utility class exists in `globals.css` (PROJ-1) but no React `<ProgressRing>` wrapper component was created in PROJ-2. Any feature that needs the animated ring must build its own wrapper. To be addressed when first feature requires it (likely PROJ-6 Feedback & Monitoring).
 
 ## Dependencies
 - Requires: PROJ-1 (Design System Foundation) — alle Komponenten nutzen die Design Tokens
@@ -116,7 +118,7 @@ Aufbau der UI Component Library — parallel als Figma Component Library und als
 - [ ] Code: `Checkbox` mit Label
 - [ ] Code: `RadioGroup` mit Optionen
 - [ ] Error State: Rotes Border + Error-Icon + Error-Text
-- [ ] Focus State: `ring-2 ring-navy-600 ring-offset-2`
+- [ ] Focus State: `ring-2 ring-ring ring-offset-2` (uses `--ring` CSS variable = Teal in light, Teal-400 in dark)
 
 ### StatsCard Component
 - [ ] Figma: 5 Farb-Varianten mit Trend-Indikator (up/down/neutral)

@@ -24,18 +24,20 @@ import {
 } from "@/components/ui/collapsible";
 
 interface NavMainProps {
-  role: UserRole;
+  /** Primary role of the user. undefined = no role yet (mid-onboarding). */
+  role: UserRole | undefined;
   isPlatformAdmin?: boolean;
 }
 
 function isAllowed(
   allowedRoles: UserRole[] | undefined,
   requiresPlatformAdmin: boolean | undefined,
-  role: UserRole,
+  role: UserRole | undefined,
   isPlatformAdmin: boolean
 ): boolean {
   if (requiresPlatformAdmin && !isPlatformAdmin) return false;
   if (!allowedRoles) return true;
+  if (role === undefined) return false;
   return allowedRoles.includes(role);
 }
 

@@ -23,7 +23,7 @@ Die App Shell definiert das übergeordnete Layout der Anwendung: Sidebar (kollab
 
 ### Figma Layout Templates
 - [ ] Figma Frame: Desktop App Shell (1440px) — Sidebar expanded (256px) + Header (64px) + Content-Bereich
-- [ ] Figma Frame: Desktop App Shell collapsed (1440px) — Sidebar collapsed (88px) + Header + Content
+- [ ] Figma Frame: Desktop App Shell collapsed (1440px) — Sidebar collapsed (56px) + Header + Content
 - [ ] Figma Frame: Mobile App Shell (375px) — kein Sidebar (hidden), Header mit Hamburger, Vollbild-Content
 - [ ] Figma Frame: Mobile Sidebar Overlay (375px) — Sidebar als fixed overlay über Content
 - [ ] Figma: Dashboard Grid Layout Template (4-spaltig Desktop, 2-spaltig Tablet, 1-spaltig Mobile)
@@ -37,7 +37,7 @@ Die App Shell definiert das übergeordnete Layout der Anwendung: Sidebar (kollab
   - Dashboard
   - Training (→ Untermenü kommt mit PROJ-7)
   - Feedback & Monitoring (→ Untermenü kommt mit PROJ-6)
-  - Organisation (nur für TRAINER + ADMIN)
+  - Organisation (nur für TRAINER)
   - Admin (nur für Platform Admin)
   - Account
   - Einstellungen
@@ -60,7 +60,7 @@ Die App Shell definiert das übergeordnete Layout der Anwendung: Sidebar (kollab
 ### Rollenbasierte Navigation
 - [ ] Rolle `ATHLETE`: Sieht Dashboard, Training (nur Kalender), Body & Ernährung, Account
 - [ ] Rolle `TRAINER`: Sieht alles + Organisation → Meine Athleten
-- [ ] Rolle `ADMIN`: Sieht alles + Admin-Bereich
+- [ ] `is_platform_admin: true`: Sieht zusätzlich den Admin-Bereich (kein ADMIN UserRole — Platform Admins sind TRAINER/ATHLETE mit diesem Flag)
 - [ ] Navigation-Items die nicht zur Rolle passen sind NICHT gerendert (nicht nur ausgeblendet)
 
 ### Layout-Wrapper
@@ -126,7 +126,7 @@ Diese Anforderungen gelten für die gesamte App — die App Shell (PROJ-3) ist d
 │   │   │       ├── NavItem     Dashboard
 │   │   │       ├── NavSection  Training        (Collapsible, auto-expand via usePathname)
 │   │   │       ├── NavSection  Body & Ernährung (Collapsible, auto-expand via usePathname)
-│   │   │       └── NavSection  Organisation    (TRAINER + ADMIN only — nicht im DOM für ATHLETE)
+│   │   │       └── NavSection  Organisation    (TRAINER only — nicht im DOM für ATHLETE)
 │   │   ├── SidebarRail         ← Drag-to-resize (kostenloses shadcn Feature)
 │   │   └── SidebarFooter
 │   │       └── UserButton      ← Avatar + Name + Dropdown
@@ -145,8 +145,8 @@ Diese Anforderungen gelten für die gesamte App — die App Shell (PROJ-3) ist d
 ### Kritische shadcn-Korrekturen (aus Code-Analyse)
 
 **[FIX-1] Collapsed-Breite: `--sidebar-width-icon` überschreiben**
-shadcn default = `3rem` (48px). Spec fordert 88px.
-In `globals.css` hinzufügen: `--sidebar-width-icon: 5.5rem;`
+shadcn default = `3rem` (48px). Implementiert als 56px (3.5rem) — post-deployment UX-Anpassung (Commit 681bd19).
+In `globals.css` und `sidebar.tsx` Konstante: `--sidebar-width-icon: 3.5rem` (56px)
 
 **[FIX-2] Collapsible-Mode explizit setzen**
 shadcn default = `collapsible="offcanvas"` (versteckt Sidebar komplett).
@@ -169,7 +169,7 @@ Aktive Links brauchen zusätzlich `aria-current={isActive ? "page" : undefined}`
 
 **Nav Config** (statisch, kein API-Call):
 - Label, Icon (Lucide), Pfad, optionale Kinder-Items, erlaubte Rollen
-- Organisation-Sektion: `allowedRoles: ["TRAINER", "ADMIN"]` → für ATHLETE nicht im DOM gerendert
+- Organisation-Sektion: `allowedRoles: ["TRAINER"]` → für ATHLETE nicht im DOM gerendert
 
 **Mock Session** (temporär bis PROJ-4) — muss Supabase `User`-Shape exakt matchen:
 ```
@@ -180,7 +180,8 @@ Aktive Links brauchen zusätzlich `aria-current={isActive ? "page" : undefined}`
     first_name: string
     last_name: string
     avatar_url?: string
-    role: "ATHLETE" | "TRAINER" | "ADMIN"
+    roles: ("ATHLETE" | "TRAINER")[]  // Array für Dual-Role-Readiness (PROJ-11+); roles[0] für Single-Role-Zugriff
+    is_platform_admin: boolean
   }
 }
 ```

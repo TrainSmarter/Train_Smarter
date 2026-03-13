@@ -30,7 +30,21 @@ interface UserButtonProps {
 }
 
 function getInitials(firstName: string, lastName: string): string {
-  return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  const a = firstName.charAt(0) ?? "";
+  const b = lastName.charAt(0) ?? "";
+  const initials = `${a}${b}`.toUpperCase();
+  return initials || "?";
+}
+
+/** Only allow https: URLs to prevent javascript:/data: injection from client-writable user_metadata */
+function getSafeAvatarUrl(url: string | undefined): string | undefined {
+  if (!url) return undefined;
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "https:" ? url : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 export function UserButton({ user }: UserButtonProps) {
@@ -42,8 +56,9 @@ export function UserButton({ user }: UserButtonProps) {
   const router = useRouter();
   const pathname = usePathname();
   const { first_name, last_name, avatar_url } = user.user_metadata;
-  const initials = getInitials(first_name, last_name);
-  const displayName = `${first_name} ${last_name}`;
+  const initials = getInitials(first_name ?? "", last_name ?? "");
+  const safeAvatarUrl = getSafeAvatarUrl(avatar_url);
+  const displayName = `${first_name} ${last_name}`.trim() || user.email;
 
   function switchLocale(locale: "de" | "en") {
     router.replace(pathname, { locale });
@@ -59,7 +74,7 @@ export function UserButton({ user }: UserButtonProps) {
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="h-8 w-8 rounded-lg">
-                {avatar_url && <AvatarImage src={avatar_url} alt={displayName} />}
+                {safeAvatarUrl && <AvatarImage src={safeAvatarUrl} alt={displayName} />}
                 <AvatarFallback className="rounded-lg bg-primary text-primary-foreground text-xs font-medium">
                   {initials}
                 </AvatarFallback>
@@ -82,7 +97,7 @@ export function UserButton({ user }: UserButtonProps) {
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  {avatar_url && <AvatarImage src={avatar_url} alt={displayName} />}
+                  {safeAvatarUrl && <AvatarImage src={safeAvatarUrl} alt={displayName} />}
                   <AvatarFallback className="rounded-lg bg-primary text-primary-foreground text-xs font-medium">
                     {initials}
                   </AvatarFallback>

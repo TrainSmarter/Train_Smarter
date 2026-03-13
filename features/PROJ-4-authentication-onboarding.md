@@ -34,6 +34,7 @@
 ## Dependencies
 - Requires: PROJ-1 (Design System Foundation)
 - Requires: PROJ-2 (UI Component Library) — Button, Input, Alert, Card
+- Requires: PROJ-3 (App Shell & Navigation) — Layout-Infrastruktur (`(protected)` Route Group, AppSidebar, `mock-session.ts` Shape); BUG-6 + BUG-7 aus PROJ-3 QA werden hier implementiert
 - References: PROJ-11 (DSGVO) — `user_consents`-Tabellenschema; PROJ-4 implementiert den Wizard-Step, PROJ-11 ist Quelle der Wahrheit für das Datenmodell
 - References: PROJ-13 (E-Mail) — Verifikations- und Passwort-Reset-E-Mails werden zunächst mit Supabase-Standard-Templates geliefert; PROJ-13 ersetzt diese mit gebrandeten Templates
 
@@ -100,6 +101,12 @@ Komplettes Authentifizierungssystem mit Supabase Auth: Registrierung, Login, Pas
 - [ ] `/verify-email` Page: `onAuthStateChange`-Listener erkennt `SIGNED_IN`-Event mit verifizierten E-Mail → automatischer Redirect zu `/onboarding` (kein Page-Reload nötig)
 - [ ] `/auth/callback` Route Handler: verarbeitet den PKCE-Code bei Klick auf Bestätigungs-Link, handled `?error=...` Params (z.B. abgelaufener Token) mit "Neuen Link anfordern" CTA
 - [ ] Alle geschützten Routen prüfen Verifizierungsstatus via `getUser()` in Middleware (nicht `getSession()` — Sicherheitsregel)
+
+### BUG-6 & BUG-7 (aus PROJ-3 QA — hier implementiert)
+> Diese Bugs wurden in PROJ-3 QA gefunden und bewusst auf PROJ-4 verschoben, da sie echter Auth-Infrastruktur bedürfen.
+
+- [ ] **BUG-6 (E-Mail-Verifizierungsprüfung in Middleware):** `(protected)/layout.tsx` prüft aktuell nicht ob die E-Mail des eingeloggten Users verifiziert ist. Implementierung: Middleware ruft `getUser()` auf — wenn `user.email_confirmed_at === null` → Redirect zu `/verify-email?email={user.email}`. Unverified Users dürfen niemals in den `(protected)`-Bereich gelangen.
+- [ ] **BUG-7 (Kein Loading-State während Session-Check):** `(protected)/layout.tsx` lädt aktuell ohne jeglichen Loading-State sofort den vollen App-Shell. Bei echtem Supabase-Auth gibt es eine kurze Latenz während `getUser()` den JWT validiert. Implementierung: Suspense-Boundary mit `<SkeletonCard>`-Fallback in `(protected)/layout.tsx` bis Session-Prüfung abgeschlossen.
 
 ### Onboarding Wizard
 - [ ] Wird nur angezeigt wenn `profile.onboarding_completed = false`
