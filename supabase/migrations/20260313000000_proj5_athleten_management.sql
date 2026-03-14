@@ -215,11 +215,13 @@ CREATE POLICY "Athletes can read own connections"
   USING (auth.uid() = athlete_id);
 
 -- Athlete policies (by athlete_email for pending invitations)
+-- NOTE: Use auth.jwt() ->> 'email' instead of SELECT from auth.users
+-- because the authenticated role does not have SELECT on auth.users.
 CREATE POLICY "Athletes can read pending invitations by email"
   ON public.trainer_athlete_connections FOR SELECT
   USING (
     status = 'pending'
-    AND athlete_email = (SELECT email FROM auth.users WHERE id = auth.uid())
+    AND athlete_email = (auth.jwt() ->> 'email')
   );
 
 CREATE POLICY "Athletes can update own connections (accept/reject/visibility)"
@@ -228,14 +230,14 @@ CREATE POLICY "Athletes can update own connections (accept/reject/visibility)"
     auth.uid() = athlete_id
     OR (
       status = 'pending'
-      AND athlete_email = (SELECT email FROM auth.users WHERE id = auth.uid())
+      AND athlete_email = (auth.jwt() ->> 'email')
     )
   )
   WITH CHECK (
     auth.uid() = athlete_id
     OR (
       status = 'pending'
-      AND athlete_email = (SELECT email FROM auth.users WHERE id = auth.uid())
+      AND athlete_email = (auth.jwt() ->> 'email')
     )
   );
 
@@ -294,6 +296,7 @@ CREATE POLICY "Trainers can read connected athlete profiles"
   );
 
 -- Athletes can read their trainer's profile
+-- NOTE: Use auth.jwt() ->> 'email' instead of SELECT from auth.users
 CREATE POLICY "Athletes can read connected trainer profiles"
   ON public.profiles FOR SELECT
   USING (
@@ -304,7 +307,7 @@ CREATE POLICY "Athletes can read connected trainer profiles"
           athlete_id = auth.uid()
           OR (
             status = 'pending'
-            AND athlete_email = (SELECT email FROM auth.users WHERE id = auth.uid())
+            AND athlete_email = (auth.jwt() ->> 'email')
           )
         )
         AND status IN ('pending', 'active')

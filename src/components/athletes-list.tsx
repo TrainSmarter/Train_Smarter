@@ -229,7 +229,7 @@ export function AthletesList({ athletes, currentPage, totalCount, hasMore }: Ath
 
       {/* Pagination */}
       {totalCount > PAGE_SIZE && (
-        <nav className="mt-6 flex items-center justify-center gap-4" aria-label="Pagination">
+        <nav className="mt-6 flex items-center justify-center gap-4" aria-label={t("pagination")}>
           {currentPage > 1 ? (
             <Link
               href={`/organisation/athletes?page=${currentPage - 1}`}

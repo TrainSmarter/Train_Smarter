@@ -507,6 +507,7 @@
     "rejectDialogTitle": "Decline invitation?",
     "rejectDialogMessage": "Do you really want to decline the invitation from {trainer}?",
     "notFoundTitle": "Athlete not found",
+    "pagination": "Pagination",
     "pageOf": "Page {current} of {total}",
     "previousPage": "Previous page",
     "nextPage": "Next page",

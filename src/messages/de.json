@@ -508,6 +508,7 @@
     "rejectDialogMessage": "Möchtest du die Einladung von {trainer} wirklich ablehnen?",
     "notFoundTitle": "Athlet nicht gefunden",
     "notFoundDescription": "Dieser Athlet existiert nicht oder du hast keinen Zugriff.",
+    "pagination": "Seitennavigation",
     "pageOf": "Seite {current} von {total}",
     "previousPage": "Vorherige Seite",
     "nextPage": "Nächste Seite"

@@ -10,6 +10,9 @@
     "lint": "eslint src",
     "typecheck": "tsc --noEmit",
     "check": "npm run lint && npm run typecheck",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "figma:publish": "figma connect publish --token $FIGMA_ACCESS_TOKEN",
     "figma:unpublish": "figma connect unpublish --token $FIGMA_ACCESS_TOKEN",
     "prepare": "husky"
@@ -57,17 +60,23 @@
   },
   "devDependencies": {
     "@figma/code-connect": "^1.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^6.0.1",
+    "@vitest/coverage-v8": "^4.1.0",
     "autoprefixer": "^10.0.1",
     "eslint": "^9",
     "eslint-config-next": "16.1.1",
     "husky": "^9.1.7",
+    "jsdom": "^28.1.0",
     "lint-staged": "^16.4.0",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.0"
   },
   "lint-staged": {
     "*.{ts,tsx}": [

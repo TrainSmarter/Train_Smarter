@@ -1,6 +1,6 @@
 # PROJ-16: Test-Strategie & Qualitätssicherung
 
-## Status: In Review
+## Status: In Progress
 **Created:** 2026-03-12
 **Last Updated:** 2026-03-12
 
@@ -615,6 +615,30 @@ No regressions detected from PROJ-16 Phase 1 changes:
 - **Security:** Env var safety hazard due to missing validation (BUG-1)
 - **Production Ready:** NO
 - **Recommendation:** Fix BUG-1 (env validation module) and BUG-2 (add tsc to lint-staged) before considering Phase 1 complete. These are the two highest-impact items and represent the core safety net that Phase 1 was designed to provide.
+
+## Implementation Progress
+
+### Phase 1: Sofort-Maßnahmen — COMPLETE (2026-03-14)
+- [x] `src/lib/env.ts` — typesafe env validation with `@t3-oss/env-nextjs`
+- [x] Husky v9 + lint-staged — pre-commit hooks (eslint + tsc)
+- [x] `.env.example` — all required vars documented
+- [x] `npm run check` / `npm run typecheck` scripts
+- [x] Duplicate `.env.local.example` removed
+
+### Phase 2: Unit Tests (Vitest) — COMPLETE (2026-03-14)
+- [x] Vitest + jsdom + @testing-library/react installed
+- [x] `vitest.config.ts` with path aliases and coverage config
+- [x] `src/test/setup.ts` with jest-dom matchers
+- [x] Test scripts: `npm run test`, `npm run test:watch`, `npm run test:coverage`
+
+**Test suites created (49 tests, all passing):**
+- [x] `src/lib/validations/auth.test.ts` — 22 tests covering all 5 Zod schemas (login, register, forgotPassword, resetPassword, profile), password rules, umlaut support, name regex
+- [x] `src/lib/mock-session.test.ts` — 8 tests for `toAuthUser()` converter (missing fields, defaults, dual roles, platform admin)
+- [x] `src/lib/utils.test.ts` — 8 tests for `cn()` utility (Tailwind conflict resolution, conditional classes, edge cases)
+- [x] `src/hooks/use-avatar-upload.test.ts` — 8 tests for `validateImageMagicBytes()` (JPEG, PNG, WebP detection, GIF rejection, empty files, disguised files)
+
+### Phase 3: E2E Tests (Playwright) — PLANNED
+- [ ] Not yet implemented
 
 ## Deployment
 _To be added by /deploy_

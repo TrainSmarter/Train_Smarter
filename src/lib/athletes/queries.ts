@@ -41,6 +41,7 @@ export async function fetchAthletes(
       `
       id,
       athlete_id,
+      athlete_email,
       status,
       connected_at,
       invited_at,
@@ -61,7 +62,7 @@ export async function fetchAthletes(
     .range(from, to);
 
   if (error) {
-    console.error("Failed to fetch athletes:", error);
+    console.error("Failed to fetch athletes:", error.message, error.code, error.details, error.hint);
     return { athletes: [], totalCount: 0, hasMore: false };
   }
 
@@ -73,7 +74,7 @@ export async function fetchAthletes(
       connectionId: row.id,
       firstName: (athlete?.first_name as string) ?? "",
       lastName: (athlete?.last_name as string) ?? "",
-      email: (athlete?.email as string) ?? "",
+      email: (athlete?.email as string) || row.athlete_email || "",
       avatarUrl: (athlete?.avatar_url as string) ?? null,
       status: row.status,
       connectedAt: row.connected_at,
