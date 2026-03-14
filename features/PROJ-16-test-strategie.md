@@ -1,6 +1,6 @@
 # PROJ-16: Test-Strategie & Qualitätssicherung
 
-## Status: Planned
+## Status: In Review
 **Created:** 2026-03-12
 **Last Updated:** 2026-03-12
 
@@ -501,7 +501,120 @@ Reihenfolge die den höchsten ROI liefert:
 5. Visuelles Monitoring (Sentry) — **ergänzt, ersetzt keine Tests**
 
 ## QA Test Results
-_To be added: Diese Spec IST die Test-Strategie — keine QA-Results hier_
+
+**Tested:** 2026-03-14
+**App URL:** http://localhost:3000
+**Tester:** QA Engineer (AI)
+**Scope:** Phase 1 Sofort-Massnahmen only (Phase 2+3 not yet implemented)
+
+### Acceptance Criteria Status (Phase 1: Sofort-Massnahmen)
+
+#### AC-1: `src/lib/env.ts` validates all required env vars at startup -- clear error instead of 500
+- [ ] FAIL: `src/lib/env.ts` does NOT exist. No env validation module was created.
+- [ ] FAIL: `@t3-oss/env-nextjs` (recommended in Tech Design) is NOT installed.
+- [ ] FAIL: All env var access uses `process.env.X!` with TypeScript non-null assertions, which silently passes `undefined` at runtime if the variable is missing.
+
+#### AC-2: Missing `NEXT_PUBLIC_SUPABASE_ANON_KEY` causes app to not start, shows which variable is missing
+- [ ] FAIL: No startup validation exists. A missing key would produce a cryptic Supabase client error at runtime, not a clear startup message.
+
+#### AC-3: Husky installed -- `git commit` with lint error blocks commit
+- [x] PASS: Husky v9 is installed (`devDependencies`, `.husky/pre-commit` exists)
+- [x] PASS: Pre-commit hook runs `npx lint-staged`
+- [x] PASS: lint-staged configured to run `eslint --fix` on `*.{ts,tsx}` files
+- [ ] BUG: lint-staged runs `eslint --fix` which auto-fixes many lint issues silently. Only unfixable errors will block the commit. The spec says "ESLint Fehler blockieren den Commit" -- auto-fixing is a softer behavior than strictly blocking.
+
+#### AC-4: Husky installed -- `git commit` with TypeScript error blocks commit
+- [ ] FAIL: lint-staged config does NOT include `tsc --noEmit`. TypeScript errors will NOT block commits. The spec explicitly requires: "tsc --noEmit -- TS-Fehler blockieren den Commit".
+
+#### AC-5: `.env.example` with all required vars exists in the repository
+- [x] PASS: `.env.example` exists, is tracked in git, contains all 4 required variables:
+  - `NEXT_PUBLIC_SUPABASE_URL`
+  - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+  - `SUPABASE_SERVICE_ROLE_KEY`
+  - `NEXT_PUBLIC_SITE_URL`
+
+#### AC-6: `npm run check` runs lint + type-check
+- [x] PASS: Script defined as `npm run lint && npm run typecheck`
+- [x] PASS: `npm run typecheck` defined as `tsc --noEmit`
+- [x] PASS: Both commands execute successfully
+
+### Additional Findings
+
+#### Duplicate env example files
+- `.env.example` (added in PROJ-16) and `.env.local.example` (added earlier) both exist with near-identical content. This creates confusion about which is the canonical reference.
+
+#### Build verification
+- [x] PASS: `npm run build` completes successfully
+- [x] PASS: All routes render without errors
+
+### Security Audit Results (Phase 1 scope)
+
+- [ ] BUG: Non-null assertions (`!`) on `process.env` values in `src/lib/supabase/client.ts`, `server.ts`, and `middleware.ts` are a runtime safety hazard. If env vars are undefined, the Supabase client will be initialized with `undefined` values, leading to cryptic errors rather than a clear failure. This is exactly what AC-1 was supposed to prevent.
+- [x] PASS: `.env.local` is in `.gitignore` and not tracked in git -- secrets are not committed.
+- [x] PASS: `.env.example` contains no actual secret values.
+- [x] PASS: `SUPABASE_SERVICE_ROLE_KEY` is NOT prefixed with `NEXT_PUBLIC_`, so it is server-side only.
+
+### Regression Check (Deployed Features)
+
+No regressions detected from PROJ-16 Phase 1 changes:
+- [x] PASS: `npm run build` still succeeds (PROJ-1 through PROJ-5 routes intact)
+- [x] PASS: `npm run lint` still succeeds
+- [x] PASS: `npm run typecheck` still succeeds
+- [x] PASS: No existing files were modified (only new files added + package.json scripts)
+
+### Bugs Found
+
+#### BUG-1: Missing env validation module (src/lib/env.ts)
+- **Severity:** High
+- **Steps to Reproduce:**
+  1. Check for `src/lib/env.ts` -- file does not exist
+  2. Check for `@t3-oss/env-nextjs` in package.json -- not installed
+  3. Remove `NEXT_PUBLIC_SUPABASE_ANON_KEY` from `.env.local`
+  4. Run `npm run dev`
+  5. Expected: App fails to start with clear message "Missing required env var: NEXT_PUBLIC_SUPABASE_ANON_KEY"
+  6. Actual: App starts but crashes at runtime with a cryptic Supabase client error
+- **Priority:** Fix before deployment -- this is 2 of 6 acceptance criteria (AC-1, AC-2) not met
+
+#### BUG-2: TypeScript errors do not block git commits
+- **Severity:** High
+- **Steps to Reproduce:**
+  1. Open any `.ts` file and introduce a type error (e.g., `const x: number = "hello"`)
+  2. Stage the file with `git add`
+  3. Run `git commit -m "test"`
+  4. Expected: Commit blocked by `tsc --noEmit` error
+  5. Actual: Commit succeeds -- lint-staged only runs `eslint --fix`, not `tsc --noEmit`
+- **Priority:** Fix before deployment -- the spec explicitly requires TypeScript checking in pre-commit
+
+#### BUG-3: lint-staged auto-fixes instead of strictly blocking
+- **Severity:** Low
+- **Steps to Reproduce:**
+  1. Introduce a fixable lint error (e.g., missing semicolon if configured)
+  2. Stage and commit
+  3. Expected: Commit blocked so developer sees the error
+  4. Actual: `eslint --fix` silently corrects the issue and commit succeeds
+- **Note:** This is a design choice, not strictly a bug. The spec says "ESLint Fehler blockieren den Commit" but auto-fix-then-pass is a common and acceptable pattern. The key protection (unfixable errors still block) works correctly.
+- **Priority:** Nice to have -- current behavior is industry-standard
+
+#### BUG-4: Duplicate .env example files
+- **Severity:** Low
+- **Steps to Reproduce:**
+  1. Observe both `.env.example` and `.env.local.example` exist in the repo
+  2. Both contain nearly identical content
+  3. New developers may be confused about which to use
+- **Priority:** Nice to have -- consolidate into one file (recommend keeping `.env.example` and removing `.env.local.example`)
+
+### Feature Spec Status Discrepancy
+- **Severity:** Low
+- `features/INDEX.md` shows PROJ-16 as "In Progress"
+- The spec header on line 3 shows "Status: Planned"
+- These should match.
+
+### Summary
+- **Acceptance Criteria:** 3/6 passed (AC-3 partial, AC-5, AC-6 pass; AC-1, AC-2, AC-4 fail)
+- **Bugs Found:** 4 total (0 critical, 2 high, 0 medium, 2 low)
+- **Security:** Env var safety hazard due to missing validation (BUG-1)
+- **Production Ready:** NO
+- **Recommendation:** Fix BUG-1 (env validation module) and BUG-2 (add tsc to lint-staged) before considering Phase 1 complete. These are the two highest-impact items and represent the core safety net that Phase 1 was designed to provide.
 
 ## Deployment
 _To be added by /deploy_
