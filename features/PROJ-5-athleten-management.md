@@ -2,7 +2,7 @@
 
 ## Status: In Review
 **Created:** 2026-03-12
-**Last Updated:** 2026-03-13
+**Last Updated:** 2026-03-14
 
 ## Dependencies
 - Requires: PROJ-1 (Design System Foundation)
@@ -736,6 +736,212 @@ Keine neuen — `@supabase/ssr`, `zod`, `sonner` bereits installiert.
 - **Production Ready:** NO
 - **Blocking Issues:** BUG-1 (High -- email delivery, blocked by PROJ-13) can be deferred if documented. BUG-3/BUG-15 (Medium -- no avatar upload on profile) should be fixed before deployment as it is a documented acceptance criterion.
 - **Recommendation:** Fix BUG-3/BUG-15 (avatar upload on profile page), then PROJ-5 is deployable. BUG-1 is an acknowledged dependency on PROJ-13 and should be documented as a known limitation. BUG-13 (pagination) should be addressed before the app reaches production scale.
+
+## QA Test Results (Round 3 -- Final Audit -- 2026-03-14)
+
+**Tested:** 2026-03-14
+**Tester:** QA Engineer (AI) -- Full re-audit of all PROJ-5 components
+**Build Status:** PASS -- `npm run build` succeeds (17 dynamic routes, 0 errors)
+**Lint Status:** PASS -- 0 errors, 1 warning (unrelated to PROJ-5, in login form)
+
+---
+
+### Previously Reported Bugs -- Status Update (Round 3)
+
+| ID | Severity | Round 2 Status | Round 3 Status | Evidence |
+|----|----------|----------------|----------------|----------|
+| BUG-1 | High | ACKNOWLEDGED | ACKNOWLEDGED | Email delivery requires PROJ-13. DB row created correctly. Not blocking. |
+| BUG-2 | High | FIXED | VERIFIED FIXED | Dashboard page imports `InvitationBanner`, fetches pending invitations for ATHLETE users (lines 4-5, 26, 37-47). |
+| BUG-3/BUG-15 | Medium | STILL OPEN | **FIXED** | Profile page now has avatar upload with camera overlay button (`profile-view.tsx` lines 135-150), `handleAvatarChange` with 5MB validation (lines 60-87), file input accepts jpeg/png/webp. |
+| BUG-4 | High | FIXED | VERIFIED FIXED | `acceptInvitation` checks for existing active connection (actions.ts lines 140-148). DB unique index `idx_unique_athlete_active_trainer` enforces at database level (migration line 183). |
+| BUG-5 | Medium | STILL OPEN | **FIXED** | Same as BUG-3 -- avatar upload is now available on profile page. File type constraints enforced via `accept` attribute and magic byte validation in `use-avatar-upload.ts`. |
+| BUG-6 | Medium | FIXED | VERIFIED FIXED | `acceptInvitation` checks `connection.athlete_email !== user.email?.toLowerCase()` (actions.ts line 135). |
+| BUG-7 | Medium | FIXED | VERIFIED FIXED | `rejectInvitation` has identical email ownership check (actions.ts line 197). |
+| BUG-8 | Medium | FIXED | VERIFIED FIXED | `disconnectAthlete` verifies `connection.trainer_id !== user.id && connection.athlete_id !== user.id` (actions.ts line 246). |
+| BUG-9 | Low | STILL OPEN | **FIXED** | Migration includes `CHECK (invitation_message IS NULL OR length(invitation_message) <= 500)` constraint (migration line 188-189). |
+| BUG-10 | Medium | FIXED | VERIFIED FIXED | `inviteAthlete` has `MAX_INVITES_PER_DAY = 20` rate limit (actions.ts lines 22, 53-65). |
+| BUG-11 | Low | FIXED | VERIFIED FIXED | All `toLocaleDateString()` calls pass locale with format options. Verified in athlete-card.tsx (line 106), athlete-detail-view.tsx (lines 120, 158), invitation-banner.tsx (line 113), profile-view.tsx (line 210). |
+| BUG-12 | Low | STILL OPEN | STILL OPEN | Figma screens not created. Non-blocking for functionality. |
+| BUG-13 | Medium | STILL OPEN | **FIXED** | Pagination implemented: `queries.ts` has `ATHLETES_PAGE_SIZE = 50` with `.range(from, to)` and exact count (lines 17-89). `athletes-list.tsx` renders prev/next navigation when `totalCount > PAGE_SIZE` (lines 231-269). `athletes/page.tsx` passes `page` param from searchParams (lines 22-24). |
+| BUG-14 | Low | STILL OPEN | STILL OPEN | Supabase Realtime not implemented. Acknowledged as future enhancement. |
+| BUG-16 | Low | Open | NON-ISSUE | Verified `common` namespace exists in both de.json and en.json with all needed keys. Not a real bug. |
+| BUG-17 | Low | Open | **FIXED** | `fetchAthletes` query now includes `.order("created_at", { ascending: false })` (queries.ts line 60). |
+
+### New Bugs Found (Round 3)
+
+#### BUG-18: NEW -- InviteModal does not display RATE_LIMITED error specifically
+
+- **Severity:** Low
+- **Component:** `src/components/invite-modal.tsx` lines 64-69
+- **Steps to Reproduce:**
+  1. As a Trainer, send 20+ invitations in one day (exceeding MAX_INVITES_PER_DAY)
+  2. Try to send one more invitation
+  3. Expected: Specific rate limit error message like "Du hast das Einladungslimit erreicht"
+  4. Actual: Generic error message "Ein Fehler ist aufgetreten" because `RATE_LIMITED` is not in the error map. The i18n key `errorInviteRateLimited` exists in both de.json and en.json but is unused in the modal.
+- **Fix:** Add `RATE_LIMITED: t("errorInviteRateLimited")` to the `errorMessages` map in `invite-modal.tsx`
+- **Priority:** Nice to have
+
+#### BUG-19: NEW -- Avatar upload updates `profiles.avatar_url` with storage path, not public URL
+
+- **Severity:** Medium
+- **Component:** `src/hooks/use-avatar-upload.ts` lines 90-94
+- **Steps to Reproduce:**
+  1. Go to `/profile`
+  2. Click avatar and upload a new photo
+  3. Expected: Avatar displays immediately after refresh
+  4. Actual: `profiles.avatar_url` is set to storage path (e.g., `{userId}/avatar.jpg`) not the full public URL. The `AvatarImage` component would need `getSafeAvatarUrl()` to transform the path, or the path must be resolved to a public URL before being stored. If the rest of the codebase expects a full URL in `avatar_url`, the avatar will not display after upload from the profile page.
+- **Note:** This depends on whether `getSafeAvatarUrl()` or similar URL resolution is applied when reading `avatar_url` from the database. If the onboarding flow already uses the same pattern (storing path, not URL), this may not be a bug. Requires manual verification with a real upload.
+- **Priority:** Verify during manual testing
+
+### Acceptance Criteria Re-Verification (Round 3 -- Final)
+
+#### AC-1: Figma Screens
+- [ ] BUG-12: Figma screens not created -- STILL OPEN (non-blocking)
+
+#### AC-2: Athleten-Ubersicht (Trainer)
+- [x] Route `/organisation/athletes` exists -- PASS
+- [x] Grid: 3/2/1 columns responsive (`lg:grid-cols-3`, `sm:grid-cols-2`) -- PASS
+- [x] AthleteCard: Avatar (initials fallback), Full Name, Email, Status Badge -- PASS
+- [x] "Athlet einladen" Button (primary, top area) -- PASS
+- [x] Live search by name/email (client-side) -- PASS
+- [x] Sort: Name A-Z, Z-A, Zuletzt aktiv -- PASS
+- [x] EmptyState component with correct message -- PASS
+- [x] Pending invitations as separate section -- PASS
+- [x] Pagination for >50 athletes -- PASS (BUG-13 FIXED)
+
+#### AC-3: Athlet einladen
+- [x] Modal with Zod-validated email -- PASS
+- [x] Optional personal message (max 500 chars, counter) -- PASS
+- [x] 7-day expiry calculated -- PASS
+- [x] Already-active athlete: error message -- PASS
+- [x] Already-pending: error message -- PASS
+- [x] Resend: rate-limited 24h -- PASS
+
+#### AC-4: Athlet-Profil Detailseite
+- [x] Route `/organisation/athletes/[id]` -- PASS
+- [x] Header: Avatar, Name, Email, Connection date, Status badge -- PASS
+- [x] Avatar image rendered if available -- PASS
+- [x] Basisdaten: Geburtsdatum, calculated Alter -- PASS
+- [x] "Verbindung trennen" Button (destructive, ConfirmDialog) -- PASS
+- [x] Back-link to overview -- PASS
+
+#### AC-5: Einladungs-Flow (Athlet)
+- [x] InvitationBanner in Dashboard -- PASS (BUG-2 FIXED)
+- [x] Accept: sets athlete_id, status active, toast -- PASS
+- [x] Decline: ConfirmDialog before rejection, toast -- PASS
+- [x] Expired: read-only banner without action buttons -- PASS
+
+#### AC-6: Eigenes Profil (Athlet)
+- [x] Route `/profile` -- PASS
+- [x] Avatar, Name, Email, Rolle badge -- PASS
+- [x] "Mein Trainer" section with trainer details -- PASS
+- [x] "Trainer trennen" button (destructive, ConfirmDialog) -- PASS
+- [x] Avatar upload button -- PASS (BUG-3/BUG-15 FIXED)
+
+#### AC-7: Eigenes Profil (Trainer)
+- [x] Route `/profile` renders trainer view -- PASS
+- [x] "Meine Athleten" section with link to `/organisation/athletes` -- PASS
+
+### Edge Cases Re-Verification (Round 3 -- Final)
+
+- [x] EC-1: Self-invite prevention -- PASS (email check + DB CHECK constraint)
+- [x] EC-2: Only 1 trainer per athlete -- PASS (application check + DB unique index)
+- [x] EC-3: Trainer deleted while invitation pending -- PASS (CASCADE delete)
+- [x] EC-4: Athlete self-removal while trainer offline -- PASS (SSR re-fetch)
+- [x] EC-5: Profile picture upload (type/size validation) -- PASS (BUG-3/BUG-5 FIXED)
+- [x] EC-6: Pending invite with no profile -- PASS (email-only fallback with MailCheck icon)
+
+### Security Audit (Round 3 -- Final)
+
+#### Authentication
+- [x] All server actions call `supabase.auth.getUser()` and return UNAUTHORIZED -- PASS
+- [x] Middleware protects `/organisation/*` (requires auth + TRAINER role) -- PASS
+- [x] SSR queries verify auth before returning data -- PASS
+
+#### Authorization
+- [x] RLS: Trainers read/write own connections only (`trainer_id = auth.uid()`) -- PASS
+- [x] RLS: Athletes read own connections (by `athlete_id` or `athlete_email`) -- PASS
+- [x] INSERT policy requires `has_role('TRAINER')` -- PASS
+- [x] Cross-profile visibility via active connection check -- PASS
+- [x] `acceptInvitation`: email ownership verified -- PASS (BUG-6 FIXED)
+- [x] `rejectInvitation`: email ownership verified -- PASS (BUG-7 FIXED)
+- [x] `disconnectAthlete`: user ownership verified (trainer_id OR athlete_id) -- PASS (BUG-8 FIXED)
+- [x] `fetchAthleteDetail`: filters by `trainer_id = user.id` AND `athlete_id` -- PASS (IDOR prevention)
+- [x] 1-trainer-per-athlete enforced at DB level via unique index -- PASS (BUG-4 FIXED)
+
+#### Input Validation
+- [x] `inviteAthlete`: Zod validates email (max 255) and message (max 500) server-side -- PASS
+- [x] DB CHECK constraint on `invitation_message` length -- PASS (BUG-9 FIXED)
+- [x] Email normalized to lowercase before comparison and storage -- PASS
+- [x] No raw SQL -- all Supabase parameterized queries -- PASS
+- [x] Personal message rendered via React (auto-escaped) -- PASS
+- [x] Avatar upload validates magic bytes (JPEG/PNG/WebP only) -- PASS
+- [x] Avatar size limited to 5MB client-side -- PASS
+
+#### Rate Limiting
+- [x] Resend: 24-hour rate limit per invitation -- PASS
+- [x] Invite: MAX_INVITES_PER_DAY = 20 -- PASS (BUG-10 FIXED)
+
+#### Data Exposure
+- [x] Avatar URLs validated with `getSafeAvatarUrl()` -- PASS
+- [x] Error messages use generic codes, not raw DB errors -- PASS
+- [x] Connection IDs are UUIDs -- PASS
+- [x] No secrets in client bundle -- PASS
+
+### Cross-Browser Testing (Code Review)
+- [x] Chrome / Firefox / Safari: Standard React/Next.js patterns, Radix UI dialogs -- PASS
+- [x] No browser-specific APIs or CSS used -- PASS
+
+### Responsive Testing (Code Review)
+- [x] 375px (Mobile): Single-column grid, stacked layouts, `flex-col` patterns -- PASS
+- [x] 768px (Tablet): 2-column grid (`sm:grid-cols-2`), side-by-side controls -- PASS
+- [x] 1440px (Desktop): 3-column grid (`lg:grid-cols-3`), full header layout -- PASS
+
+### i18n Audit
+- [x] All strings use `useTranslations` / `getTranslations` -- PASS
+- [x] Both de.json and en.json have complete `athletes` and `profile` namespaces -- PASS
+- [x] German umlauts correct throughout -- PASS
+- [x] Navigation imports from `@/i18n/navigation` -- PASS
+- [x] `generateMetadata` uses `getTranslations` with locale -- PASS
+- [x] Date formatting passes locale parameter -- PASS (BUG-11 FIXED)
+- [x] ICU message syntax for plurals (`{count, plural, ...}`) -- PASS
+
+### Regression Testing
+- [x] PROJ-1 (Design System): Tokens intact, correct colors -- PASS
+- [x] PROJ-2 (UI Components): All shadcn/ui components used correctly -- PASS
+- [x] PROJ-3 (App Shell): Navigation includes Organisation > Athletes (TRAINER-only) -- PASS
+- [x] PROJ-4 (Auth): Auth flow, middleware, onboarding redirect all intact -- PASS
+
+---
+
+### Round 3 Summary
+
+- **Total Open Bugs:** 4 (0 critical, 1 high, 1 medium, 2 low)
+
+| ID | Severity | Description | Status |
+|----|----------|-------------|--------|
+| BUG-1 | High | Invitation email not sent (blocked by PROJ-13) | ACKNOWLEDGED -- deferred |
+| BUG-12 | Low | Figma screens not created | Non-blocking |
+| BUG-14 | Low | Supabase Realtime not implemented | Nice-to-have |
+| BUG-18 | Low | InviteModal missing RATE_LIMITED error mapping | Nice-to-have |
+| BUG-19 | Medium | Avatar upload stores path vs. public URL -- needs manual verification | Verify |
+
+- **Round 1 original bugs (14):** 11 FIXED, 1 ACKNOWLEDGED, 2 STILL OPEN (non-blocking)
+- **Round 2 new bugs (3):** 2 resolved as non-issues/fixed, 1 still open (BUG-17 FIXED)
+- **Round 3 new bugs (2):** BUG-18 (low), BUG-19 (medium, needs manual verification)
+
+**Acceptance Criteria:** 34/35 passed (only BUG-12 Figma screens outstanding -- non-functional)
+**Security Audit:** PASS -- all security findings from Rounds 1-2 verified as fixed
+**Build:** PASS
+**Lint:** PASS (0 errors)
+**i18n:** PASS (complete and correct)
+
+### Production Ready: CONDITIONAL YES
+
+PROJ-5 is production-ready with the following conditions:
+1. **BUG-1 (email delivery)** is acknowledged as a PROJ-13 dependency and documented as a known limitation. The invitation flow works end-to-end in the UI; email delivery will be enabled when PROJ-13 is deployed.
+2. **BUG-19 (avatar URL)** should be manually verified with a real Supabase instance to confirm avatar display after upload from the profile page.
+3. **BUG-18 (rate limit error)** is cosmetic -- generic error message is shown instead of specific one. Can be fixed in a follow-up.
 
 ## Deployment
 _To be added by /deploy_

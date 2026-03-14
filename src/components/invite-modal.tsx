@@ -66,6 +66,7 @@ export function InviteModal({ open, onOpenChange }: InviteModalProps) {
           ALREADY_CONNECTED: t("errorAlreadyConnected"),
           ALREADY_PENDING: t("errorAlreadyPending"),
           INVALID_INPUT: t("errorInvalidInput"),
+          RATE_LIMITED: t("errorInviteRateLimited"),
         };
         toast.error(errorMessages[errorKey] ?? t("errorGeneric"));
       }

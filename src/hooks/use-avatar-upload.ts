@@ -87,11 +87,16 @@ export async function uploadAvatar(
     return { path: null, error: "UPLOAD_FAILED" };
   }
 
-  // Update profile with new avatar URL
+  // Get the public URL for the uploaded file
+  const { data: publicUrlData } = supabase.storage
+    .from("avatars")
+    .getPublicUrl(filePath);
+
+  // Update profile with public avatar URL
   await supabase
     .from("profiles")
-    .update({ avatar_url: filePath })
+    .update({ avatar_url: publicUrlData.publicUrl })
     .eq("id", userId);
 
-  return { path: filePath, error: null };
+  return { path: publicUrlData.publicUrl, error: null };
 }
