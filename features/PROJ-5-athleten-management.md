@@ -1,6 +1,6 @@
 # PROJ-5: Athleten-Management
 
-## Status: In Review
+## Status: Deployed
 **Created:** 2026-03-12
 **Last Updated:** 2026-03-14
 
@@ -1229,4 +1229,16 @@ PROJ-5 is production-ready with the following conditions:
 PROJ-5 is production-ready. All functional and security bugs are fixed. Remaining items (BUG-12 Figma, BUG-14 Realtime) are non-blocking enhancements.
 
 ## Deployment
-_To be added by /deploy_
+
+- **Production URL:** https://www.train-smarter.at
+- **Deployed:** 2026-03-14
+- **Commit:** `0f16738` — feat(PROJ-5,PROJ-16): Fix pending invite email + add Vitest unit tests
+- **Vercel Deployment:** `dpl_AYbTTLrWJn3bzfHTxeDcYjeGHFk3`
+
+### Was wurde deployed
+- Athleten-Übersichtsseite mit Pending/Active Trennung, Suche, Sortierung, Pagination
+- Einladungs-Flow: Modal → DB-Eintrag → Anzeige auf Athleten-Seite
+- Pending-Karten zeigen jetzt die eingeladene E-Mail-Adresse
+- Einladungs-Banner auf Athlete-Dashboard (Annehmen/Ablehnen)
+- Athlet-Detail-Seite mit Verbindungsinfo und Datenschutz-Einstellungen
+- RLS-Policies korrekt (auth.jwt() statt auth.users)

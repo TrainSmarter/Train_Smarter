@@ -641,4 +641,10 @@ No regressions detected from PROJ-16 Phase 1 changes:
 - [ ] Not yet implemented
 
 ## Deployment
-_To be added by /deploy_
+
+- **Production URL:** https://www.train-smarter.at
+- **Phase 1 deployed:** 2026-03-14
+- **Phase 2 deployed:** 2026-03-14
+- **Commit:** `0f16738`
+
+Phase 3 (E2E Playwright) folgt mit Implementierung weiterer kritischer Features (PROJ-6, PROJ-7).
