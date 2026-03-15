@@ -50,7 +50,7 @@ function NavItemLink({
   pathname: string;
   t: (key: string) => string;
 }) {
-  const isActive = pathname === item.path;
+  const isActive = pathname === item.path || pathname.startsWith(item.path + "/");
   const Icon = item.icon;
   const label = t(item.labelKey);
 

@@ -18,9 +18,9 @@ Train Smarter ist eine professionelle Trainingsmanagement-Plattform für Athleti
 - Tracken täglich Körpermaße, Gewicht, Ernährung, subjektives Empfinden
 - Sehen ihren Trainingsfortschritt im Kalender
 
-### Tertiär: Club-Administratoren
-- Verwalten mehrere Trainer und Athleten in einer Organisation
-- Kontrollieren Zugriffsrechte und Einladungen
+### Tertiär: Team-Organisatoren
+- Erstellen und verwalten Teams innerhalb ihrer Trainerverbindungen
+- Weisen Athleten Teams zu und organisieren Trainingsgruppen
 
 ## Core Features (Roadmap)
 
@@ -34,7 +34,7 @@ Train Smarter ist eine professionelle Trainingsmanagement-Plattform für Athleti
 | P0 (MVP) | PROJ-6: Feedback & Monitoring | Planned |
 | P1 | PROJ-7: Training Workspace & Periodisierung | Planned |
 | P1 | PROJ-8: Trainingskalender (Sub-View im Workspace) | Planned |
-| P2 | PROJ-9: Club-Verwaltung | Planned |
+| P2 | PROJ-9: Team-Verwaltung | In Progress |
 | P2 | PROJ-10: Admin-Bereich | Planned |
 | P0 (MVP) | PROJ-11: DSGVO-Compliance & Datenschutz | Planned |
 | P1 | PROJ-12: Übungsbibliothek | Planned |

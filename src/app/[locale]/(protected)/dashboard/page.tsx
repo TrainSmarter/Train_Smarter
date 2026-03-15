@@ -2,7 +2,9 @@ import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { toAuthUser } from "@/lib/mock-session";
 import { fetchPendingInvitations } from "@/lib/athletes/queries";
+import { fetchAthleteTeams } from "@/lib/teams/queries";
 import { InvitationBanner } from "@/components/invitation-banner";
+import { TeamOverviewCard } from "@/components/team-overview-card";
 import {
   Card,
   CardContent,
@@ -23,7 +25,10 @@ export default async function DashboardPage() {
   const isAthlete = authUser?.app_metadata.roles[0] === "ATHLETE";
 
   // BUG-2 fix: Fetch pending invitations for athletes
-  const pendingInvitations = isAthlete ? await fetchPendingInvitations() : [];
+  const [pendingInvitations, athleteTeams] = await Promise.all([
+    isAthlete ? fetchPendingInvitations() : Promise.resolve([]),
+    isAthlete ? fetchAthleteTeams() : Promise.resolve([]),
+  ]);
 
   return (
     <div className="space-y-8">
@@ -116,6 +121,11 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Athlete: Teams overview card (PROJ-9) */}
+      {isAthlete && (
+        <TeamOverviewCard teams={athleteTeams} />
+      )}
     </div>
   );
 }
