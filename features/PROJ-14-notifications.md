@@ -63,7 +63,7 @@ Einheitliches Benachrichtigungssystem mit zwei Kanälen (In-App + E-Mail) und gr
 - [ ] „Alle löschen" Button (mit Bestätigung)
 
 ### Benachrichtigungs-Einstellungen (Trainer)
-- [ ] Route: `/account/einstellungen` → Sektion „Benachrichtigungen"
+- [ ] Route: `/konto/einstellungen` → Sektion „Benachrichtigungen"
 - [ ] Matrix: Zeilen = Benachrichtigungs-Typ, Spalten = Kanal (In-App / E-Mail / Keine)
 - [ ] Pro Zeile: Radio-Button-Gruppe (nur eine Option wählbar)
 - [ ] Standard-Einstellungen beim ersten Login (siehe Tabelle unten)
@@ -84,7 +84,7 @@ Einheitliches Benachrichtigungssystem mit zwei Kanälen (In-App + E-Mail) und gr
 | account_deletion_confirmed | E-Mail |
 
 ### Benachrichtigungs-Einstellungen (Athlet)
-- [ ] Route: `/account/einstellungen` → Sektion „Benachrichtigungen"
+- [ ] Route: `/konto/einstellungen` → Sektion „Benachrichtigungen"
 - [ ] Einfacher 3-Option Switch: „In-App & E-Mail" / „Nur In-App" / „Keine Benachrichtigungen"
 - [ ] Gilt für alle Benachrichtigungs-Typen gleichzeitig (kein granulares Typ-Setting für Athleten)
 - [ ] Standard: „In-App & E-Mail"

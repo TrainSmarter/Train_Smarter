@@ -661,15 +661,15 @@ Code-level review (no browser runtime). All patterns used are well-supported:
 - **Note:** This is a MANDATORY i18n rule violation per `.claude/rules/i18n.md`: "Always use locale-aware navigation from `@/i18n/navigation`"
 - **Priority:** Fix before next deployment -- this is a functional bug that affects all sidebar navigation
 
-#### BUG-P3-14: NEW -- Settings nav item uses German path `/account/einstellungen`
+#### BUG-P3-14: FIXED -- Settings nav item uses German path `/account/einstellungen`
 - **Severity:** Low
 - **Component:** `src/lib/nav-config.ts` line 106
 - **Details:**
-  - Settings nav item path is `"/account/einstellungen"` (German word in URL path)
-  - Other nav items use English paths: `/dashboard`, `/training`, `/feedback`, `/organisation`, `/admin`, `/account`
-  - Inconsistency: 6 items use English paths, 1 uses German
-  - This is not a functional bug but creates inconsistency and may cause i18n routing complications
-- **Priority:** Nice to have -- consider renaming to `/account/settings` for consistency
+  - Settings nav item path was `"/account/einstellungen"` (German word in URL path)
+  - **FIXED:** Now uses localized pathnames via `next-intl` routing config.
+  - DE URL: `/konto/einstellungen`, EN URL: `/account/settings`
+  - Filesystem path remains `/account/settings`, URL translation handled by `src/i18n/routing.ts`
+- **Priority:** Resolved
 
 ---
 

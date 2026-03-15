@@ -45,8 +45,8 @@ Körpergewicht, Körpermaße, Schlafqualität, Wellness-Score und Ernährungsdat
 - [ ] Ohne Pflicht-Checkbox-Zustimmung: Registrierung nicht abschließbar
 - [ ] Opt-ins (Körper, Ernährung) können übersprungen werden — Feature ist dann für diesen User deaktiviert
 
-### Datenschutz-Einstellungen (/account/datenschutz)
-- [ ] Route: `/account/datenschutz`
+### Datenschutz-Einstellungen (/konto/datenschutz)
+- [ ] Route: `/konto/datenschutz`
 - [ ] Übersicht aller erteilten Einwilligungen mit Datum der Erteilung und aktueller Policy-Version
 - [ ] Toggle zum Widerrufen jeder Opt-in-Einwilligung — mit ConfirmDialog: „Was passiert wenn du widerrufst: Die Verarbeitung dieser Datenkategorie wird sofort gestoppt. Bereits erfasste Daten bleiben bis zu einer expliziten Löschung erhalten."
 - [ ] Widerruf wird sofort wirksam und in `user_consents` mit `revoked_at`-Timestamp gespeichert
@@ -97,11 +97,11 @@ Körpergewicht, Körpermaße, Schlafqualität, Wellness-Score und Ernährungsdat
 - [ ] Retention-Regeln sind in der Datenschutzerklärung dokumentiert
 
 ### Auskunftsrecht — Art. 15 DSGVO
-- [ ] `/account/datenschutz` zeigt Übersicht: welche Datenkategorien gespeichert sind, zu welchem Zweck, seit wann
+- [ ] `/konto/datenschutz` zeigt Übersicht: welche Datenkategorien gespeichert sind, zu welchem Zweck, seit wann
 - [ ] Formaler Auskunftsantrag jenseits des Self-Service: Link zu datenschutz@train-smarter.at (kein automatisierter Flow in v1.0)
 
 ### Berichtigungsrecht — Art. 16 DSGVO
-- [ ] Profildaten (Name, E-Mail, Geburtsdatum) auf `/account` jederzeit bearbeitbar
+- [ ] Profildaten (Name, E-Mail, Geburtsdatum) auf `/konto` jederzeit bearbeitbar
 - [ ] E-Mail-Änderung: Bestätigungs-E-Mail an neue Adresse (Supabase Auth Flow) — alte E-Mail bleibt bis Bestätigung aktiv
 - [ ] Audit-Log-Einträge sind nicht korrigierbar (append-only — korrekt nach DSGVO)
 
@@ -162,7 +162,7 @@ Append-only: keine UPDATE-Operationen auf bestehende Zeilen
 
 ### Arbeitspakete
 - **A) Pflicht-Seiten:** /datenschutz, /impressum, /agb (SSG, (legal) route group, eigenes Layout mit Footer)
-- **B) Datenschutz-Einstellungen:** /account/datenschutz (Consent-Toggle, Trainer-Datenzugriff, Art. 15 Tabelle, Export-Button, Lösch-Button)
+- **B) Datenschutz-Einstellungen:** /konto/datenschutz (Consent-Toggle, Trainer-Datenzugriff, Art. 15 Tabelle, Export-Button, Lösch-Button)
 - **C) Daten-Export:** POST /api/gdpr/export — synchroner JSON-Download, Rate-Limit 1x/30 Tage via data_exports Tabelle
 - **D) Account-Löschung:** POST /api/gdpr/delete-account — 2-Stufen-Bestätigung, Pseudonymisierung, 30-Tage-Grace-Period via pending_deletions Tabelle
 - **E) Consent API:** POST /api/gdpr/consents — Server-side Consent mit IP-Logging (Art. 7), DB-Trigger für Cascade zu can_see_* Flags
@@ -185,7 +185,7 @@ Append-only: keine UPDATE-Operationen auf bestehende Zeilen
 - `(legal)/impressum/page.tsx` — Impressum (SSG)
 - `(legal)/agb/page.tsx` — AGB (SSG)
 - `(legal)/layout.tsx` — Legal Layout mit Header + Footer
-- `(protected)/account/datenschutz/page.tsx` — Consent-Management, Export, Account-Löschung
+- `(protected)/konto/datenschutz/page.tsx` — Consent-Management, Export, Account-Löschung
 - `nav-config.ts` — Sidebar-Link "Datenschutz" unter Account
 - i18n: `legal`, `privacy`, `footer` Namespaces in de.json + en.json
 
@@ -237,8 +237,8 @@ Append-only: keine UPDATE-Operationen auf bestehende Zeilen
 - [x] Opt-ins can be skipped (not checked) -- feature deactivated for user
 - [ ] BUG-2: Onboarding consent links use raw `<a href="/agb">` instead of `Link` from `@/i18n/navigation` -- locale prefix missing
 
-#### AC-3: Datenschutz-Einstellungen (/account/datenschutz)
-- [x] Route `/account/datenschutz` exists -- client component with full consent management
+#### AC-3: Datenschutz-Einstellungen (/konto/datenschutz)
+- [x] Route `/konto/datenschutz` exists -- client component with full consent management
 - [x] Overview of all granted consents with date and policy version
 - [x] Toggle to revoke each opt-in consent -- Switch component with ConfirmDialog
 - [x] Revoke dialog shows correct warning message about consequences
@@ -285,11 +285,11 @@ Append-only: keine UPDATE-Operationen auf bestehende Zeilen
 - [ ] BUG-11: No automated cron/scheduled function to actually execute the 30-day cleanup of pending_deletions. The table tracks it but nothing processes it.
 
 #### AC-7: Auskunftsrecht -- Art. 15 DSGVO
-- [x] /account/datenschutz shows overview of stored data categories with purpose and since-date
+- [x] /konto/datenschutz shows overview of stored data categories with purpose and since-date
 - [x] Link to datenschutz@train-smarter.at for formal requests
 
 #### AC-8: Berichtigungsrecht -- Art. 16 DSGVO
-- [x] Profile data (name, birth date) editable on /account (existing feature)
+- [x] Profile data (name, birth date) editable on /konto (existing feature)
 - [x] Audit log entries are append-only (correct per DSGVO)
 - Note: Email change flow verification deferred to PROJ-4 scope
 
@@ -398,16 +398,16 @@ Since these are primarily server-rendered legal pages and a standard form-based 
 #### BUG-3: Missing Trainer-Datenzugriff section on privacy settings page
 - **Severity:** Medium
 - **Steps to Reproduce:**
-  1. Navigate to /account/datenschutz as an athlete with trainer connections
+  1. Navigate to /konto/datenschutz as an athlete with trainer connections
   2. Expected: Section showing can_see_body_data, can_see_nutrition, can_see_calendar flags with link to connection settings
   3. Actual: Section is not rendered (i18n keys exist but UI code is missing)
 - **Priority:** Fix before deployment
-- **Location:** `src/app/[locale]/(protected)/account/datenschutz/page.tsx` -- no code for trainerAccess section
+- **Location:** `src/app/[locale]/(protected)/konto/datenschutz/page.tsx` -- no code for trainerAccess section
 
 #### BUG-4: Export delivers JSON, not ZIP with JSON+CSV as specified
 - **Severity:** Medium
 - **Steps to Reproduce:**
-  1. Navigate to /account/datenschutz
+  1. Navigate to /konto/datenschutz
   2. Click "Alle meine Daten exportieren"
   3. Expected: ZIP file download containing JSON + CSV files
   4. Actual: Single JSON file download
@@ -443,7 +443,7 @@ Since these are primarily server-rendered legal pages and a standard form-based 
 #### BUG-8: Email not anonymized on account deletion
 - **Severity:** High
 - **Steps to Reproduce:**
-  1. Delete account via /account/datenschutz
+  1. Delete account via /konto/datenschutz
   2. Check auth.users table
   3. Expected: Email replaced with anonymized hash
   4. Actual: Email remains in auth.users (only user is banned, profile is pseudonymized)
@@ -550,7 +550,7 @@ Since these are primarily server-rendered legal pages and a standard form-based 
 
 ### What's deployed
 - Legal pages: /datenschutz, /impressum, /agb (public, SSG)
-- Privacy settings: /account/datenschutz (consent management, export, deletion)
+- Privacy settings: /konto/datenschutz (consent management, export, deletion)
 - 3 GDPR API routes: /api/gdpr/consents, /api/gdpr/export, /api/gdpr/delete-account
 - DB: ip_address on user_consents, data_exports + pending_deletions tables, consent cascade trigger
 - Security: append-only RLS on user_consents (BUG-15 fixed)
