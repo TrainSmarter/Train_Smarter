@@ -1,5 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
+import { Webhook } from "https://esm.sh/standardwebhooks@1.0.0";
 
 // ── Types ──────────────────────────────────────────────────────────────
 
@@ -271,7 +272,18 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const payload: AuthEmailHookPayload = await req.json();
+    // Verify Standard Webhooks signature
+    const rawPayload = await req.text();
+    const hookSecret = Deno.env.get("SEND_EMAIL_HOOK_SECRET");
+    let payload: AuthEmailHookPayload;
+
+    if (hookSecret) {
+      const wh = new Webhook(hookSecret.replace("v1,whsec_", ""));
+      payload = wh.verify(rawPayload, Object.fromEntries(req.headers)) as AuthEmailHookPayload;
+    } else {
+      payload = JSON.parse(rawPayload);
+    }
+
     const { user, email_data } = payload;
 
     if (!user?.email || !email_data?.email_action_type) {
