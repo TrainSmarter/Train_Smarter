@@ -1,6 +1,6 @@
 # PROJ-11: DSGVO-Compliance & Datenschutz
 
-## Status: In Review
+## Status: Deployed
 **Created:** 2026-03-12
 **Last Updated:** 2026-03-15
 
@@ -542,4 +542,23 @@ Since these are primarily server-rendered legal pages and a standard form-based 
 - **Recommendation:** Fix BUG-15 (Critical RLS), BUG-8 (email anonymization), BUG-11 (30-day cleanup), and BUG-13 (age verification) before deployment. BUG-2, BUG-3, BUG-4, BUG-7 (misleading UI text) should also be addressed. BUG-5 is acceptable if training/body/nutrition features are not yet built.
 
 ## Deployment
-_To be added by /deploy_
+
+**Production URL:** https://www.train-smarter.at
+**Deployed:** 2026-03-15
+**Commit:** 1a7566d
+**Vercel Build:** 57s, ● Ready
+
+### What's deployed
+- Legal pages: /datenschutz, /impressum, /agb (public, SSG)
+- Privacy settings: /account/datenschutz (consent management, export, deletion)
+- 3 GDPR API routes: /api/gdpr/consents, /api/gdpr/export, /api/gdpr/delete-account
+- DB: ip_address on user_consents, data_exports + pending_deletions tables, consent cascade trigger
+- Security: append-only RLS on user_consents (BUG-15 fixed)
+- Onboarding: locale-aware consent links, age check for minors
+
+### Deferred items (not blocking deployment)
+- BUG-5: Training/body/nutrition data in export (features not built yet)
+- BUG-9/BUG-12: Confirmation emails + notifications (depends on PROJ-13/PROJ-14)
+- BUG-11: 30-day cleanup cron for pending_deletions (separate infra ticket)
+- BUG-14: Policy version re-consent mechanism
+- Legal text review by Austrian lawyer (documented as prerequisite in spec)
