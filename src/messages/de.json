@@ -513,7 +513,14 @@
     "pagination": "Seitennavigation",
     "pageOf": "Seite {current} von {total}",
     "previousPage": "Vorherige Seite",
-    "nextPage": "Nächste Seite"
+    "nextPage": "Nächste Seite",
+    "invitedAgo": "Eingeladen {time}",
+    "expiresIn": "Läuft ab {time}",
+    "withdraw": "Zurückziehen",
+    "withdrawDialogTitle": "Einladung zurückziehen?",
+    "withdrawDialogMessage": "{email} erhält keinen Zugang mehr über den bestehenden Einladungslink.",
+    "withdrawSuccess": "Einladung an {email} wurde zurückgezogen.",
+    "withdrawError": "Einladung konnte nicht zurückgezogen werden. Bitte versuche es erneut."
   },
   "profile": {
     "title": "Mein Profil",

@@ -17,6 +17,8 @@ const inviteSchema = z.object({
   message: z.string().max(500).optional(),
 });
 
+const connectionIdSchema = z.string().uuid();
+
 // ── Constants ───────────────────────────────────────────────────
 
 const MAX_INVITES_PER_DAY = 20;
@@ -110,6 +112,12 @@ export async function inviteAthlete(data: {
 export async function acceptInvitation(
   connectionId: string
 ): Promise<{ success: boolean; error?: string }> {
+  // Validate input
+  const parsed = connectionIdSchema.safeParse(connectionId);
+  if (!parsed.success) {
+    return { success: false, error: "INVALID_INPUT" };
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -172,6 +180,12 @@ export async function acceptInvitation(
 export async function rejectInvitation(
   connectionId: string
 ): Promise<{ success: boolean; error?: string }> {
+  // Validate input
+  const parsed = connectionIdSchema.safeParse(connectionId);
+  if (!parsed.success) {
+    return { success: false, error: "INVALID_INPUT" };
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -221,6 +235,12 @@ export async function rejectInvitation(
 export async function disconnectAthlete(
   connectionId: string
 ): Promise<{ success: boolean; error?: string }> {
+  // Validate input
+  const parsed = connectionIdSchema.safeParse(connectionId);
+  if (!parsed.success) {
+    return { success: false, error: "INVALID_INPUT" };
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -265,11 +285,75 @@ export async function disconnectAthlete(
   return { success: true };
 }
 
+// ── Withdraw Invitation ─────────────────────────────────────────
+
+export async function withdrawInvitation(
+  connectionId: string
+): Promise<{ success: boolean; error?: string }> {
+  // Validate input
+  const parsed = connectionIdSchema.safeParse(connectionId);
+  if (!parsed.success) {
+    return { success: false, error: "INVALID_INPUT" };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    return { success: false, error: "UNAUTHORIZED" };
+  }
+
+  // Verify: only the trainer who sent the invitation can withdraw it
+  const { data: connection } = await supabase
+    .from("trainer_athlete_connections")
+    .select("id, trainer_id, status")
+    .eq("id", connectionId)
+    .single();
+
+  if (!connection) {
+    return { success: false, error: "NOT_FOUND" };
+  }
+
+  if (connection.trainer_id !== user.id) {
+    return { success: false, error: "UNAUTHORIZED" };
+  }
+
+  // Only pending invitations can be withdrawn
+  if (connection.status !== "pending") {
+    return { success: false, error: "NOT_PENDING" };
+  }
+
+  // Hard delete from trainer_athlete_connections
+  const { error: deleteError } = await supabase
+    .from("trainer_athlete_connections")
+    .delete()
+    .eq("id", connectionId)
+    .eq("trainer_id", user.id)
+    .eq("status", "pending");
+
+  if (deleteError) {
+    console.error("Failed to withdraw invitation:", deleteError);
+    return { success: false, error: "DELETE_FAILED" };
+  }
+
+  revalidatePath("/organisation");
+  return { success: true };
+}
+
 // ── Resend Invitation ───────────────────────────────────────────
 
 export async function resendInvitation(
   connectionId: string
 ): Promise<{ success: boolean; error?: string }> {
+  // Validate input
+  const parsed = connectionIdSchema.safeParse(connectionId);
+  if (!parsed.success) {
+    return { success: false, error: "INVALID_INPUT" };
+  }
+
   const supabase = await createClient();
   const {
     data: { user },

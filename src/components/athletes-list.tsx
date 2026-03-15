@@ -18,7 +18,8 @@ import {
 import { EmptyState } from "@/components/empty-state";
 import { AthleteCard } from "@/components/athlete-card";
 import { InviteModal } from "@/components/invite-modal";
-import { resendInvitation } from "@/lib/athletes/actions";
+import { ConfirmDialog } from "@/components/modal";
+import { resendInvitation, withdrawInvitation } from "@/lib/athletes/actions";
 import type { AthleteListItem, SortOption } from "@/lib/athletes/types";
 
 const PAGE_SIZE = 50;
@@ -66,6 +67,12 @@ export function AthletesList({ athletes, currentPage, totalCount, hasMore }: Ath
   const [sort, setSort] = React.useState<SortOption>("name-asc");
   const [inviteOpen, setInviteOpen] = React.useState(false);
   const [resendingId, setResendingId] = React.useState<string | null>(null);
+  const [withdrawingId, setWithdrawingId] = React.useState<string | null>(null);
+  const [withdrawConfirm, setWithdrawConfirm] = React.useState<{
+    open: boolean;
+    connectionId: string;
+    email: string;
+  }>({ open: false, connectionId: "", email: "" });
 
   // Separate pending and active
   const pending = athletes.filter((a) => a.status === "pending");
@@ -110,6 +117,34 @@ export function AthletesList({ athletes, currentPage, totalCount, hasMore }: Ath
       toast.error(t("errorGeneric"));
     } finally {
       setResendingId(null);
+    }
+  }
+
+  function handleWithdrawClick(connectionId: string) {
+    const athlete = athletes.find((a) => a.connectionId === connectionId);
+    if (!athlete) return;
+    setWithdrawConfirm({
+      open: true,
+      connectionId,
+      email: athlete.email,
+    });
+  }
+
+  async function handleWithdrawConfirm() {
+    const { connectionId, email } = withdrawConfirm;
+    setWithdrawingId(connectionId);
+    try {
+      const result = await withdrawInvitation(connectionId);
+      if (result.success) {
+        toast.success(t("withdrawSuccess", { email }));
+      } else {
+        toast.error(t("withdrawError"));
+      }
+    } catch {
+      toast.error(t("withdrawError"));
+    } finally {
+      setWithdrawingId(null);
+      setWithdrawConfirm({ open: false, connectionId: "", email: "" });
     }
   }
 
@@ -202,6 +237,8 @@ export function AthletesList({ athletes, currentPage, totalCount, hasMore }: Ath
                 athlete={athlete}
                 onResendInvite={handleResend}
                 isResending={resendingId === athlete.connectionId}
+                onWithdrawInvite={handleWithdrawClick}
+                isWithdrawing={withdrawingId === athlete.connectionId}
               />
             ))}
           </div>
@@ -271,6 +308,21 @@ export function AthletesList({ athletes, currentPage, totalCount, hasMore }: Ath
 
       {/* Invite Modal */}
       <InviteModal open={inviteOpen} onOpenChange={setInviteOpen} />
+
+      {/* Withdraw Confirm Dialog */}
+      <ConfirmDialog
+        open={withdrawConfirm.open}
+        onOpenChange={(open) =>
+          setWithdrawConfirm((prev) => ({ ...prev, open }))
+        }
+        variant="danger"
+        title={t("withdrawDialogTitle")}
+        message={t("withdrawDialogMessage", { email: withdrawConfirm.email })}
+        confirmLabel={t("withdraw")}
+        cancelLabel={tCommon("cancel")}
+        onConfirm={handleWithdrawConfirm}
+        loading={withdrawingId !== null}
+      />
     </>
   );
 }

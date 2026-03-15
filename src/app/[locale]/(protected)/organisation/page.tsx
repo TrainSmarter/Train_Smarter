@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+import { redirect } from "@/i18n/navigation";
 import { getTranslations } from "next-intl/server";
 import { UnifiedOrganisationView } from "@/components/unified-organisation-view";
 import { fetchAllAthletes } from "@/lib/athletes/queries";
@@ -32,7 +32,7 @@ export default async function OrganisationPage({
 
   const roles = (user?.app_metadata?.roles as string[]) ?? [];
   if (!roles.includes("TRAINER")) {
-    redirect(`/${locale}/dashboard`);
+    redirect({ href: "/dashboard", locale });
   }
 
   const [athletes, teams, teamAthleteMap] = await Promise.all([

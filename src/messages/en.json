@@ -513,7 +513,14 @@
     "pageOf": "Page {current} of {total}",
     "previousPage": "Previous page",
     "nextPage": "Next page",
-    "notFoundDescription": "This athlete does not exist or you do not have access."
+    "notFoundDescription": "This athlete does not exist or you do not have access.",
+    "invitedAgo": "Invited {time}",
+    "expiresIn": "Expires {time}",
+    "withdraw": "Withdraw",
+    "withdrawDialogTitle": "Withdraw invitation?",
+    "withdrawDialogMessage": "{email} will no longer have access via the existing invitation link.",
+    "withdrawSuccess": "Invitation to {email} has been withdrawn.",
+    "withdrawError": "Could not withdraw invitation. Please try again."
   },
   "profile": {
     "title": "My Profile",

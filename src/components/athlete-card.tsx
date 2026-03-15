@@ -1,8 +1,8 @@
 "use client";
 
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations, useFormatter } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { Clock, MailCheck, RefreshCw } from "lucide-react";
+import { Clock, Hourglass, MailCheck, RefreshCw, Undo2 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +15,8 @@ interface AthleteCardProps {
   athlete: AthleteListItem;
   onResendInvite?: (connectionId: string) => void;
   isResending?: boolean;
+  onWithdrawInvite?: (connectionId: string) => void;
+  isWithdrawing?: boolean;
 }
 
 function getInitials(firstName: string, lastName: string): string {
@@ -25,9 +27,11 @@ export function AthleteCard({
   athlete,
   onResendInvite,
   isResending = false,
+  onWithdrawInvite,
+  isWithdrawing = false,
 }: AthleteCardProps) {
   const t = useTranslations("athletes");
-  const locale = useLocale();
+  const format = useFormatter();
   const isPending = athlete.status === "pending";
   const isExpired =
     isPending && new Date(athlete.invitationExpiresAt) < new Date();
@@ -91,6 +95,22 @@ export function AthleteCard({
                       {t("resend")}
                     </Button>
                   )}
+                  {!isExpired && onWithdrawInvite && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 gap-1 px-2 text-xs text-destructive hover:text-destructive"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onWithdrawInvite(athlete.connectionId);
+                      }}
+                      loading={isWithdrawing}
+                    >
+                      <Undo2 className="h-3 w-3" />
+                      {t("withdraw")}
+                    </Button>
+                  )}
                 </>
               ) : (
                 <Badge variant="success" size="sm">
@@ -100,12 +120,22 @@ export function AthleteCard({
             </div>
 
             {isPending && (
-              <p className="mt-1 flex items-center gap-1 text-caption text-muted-foreground">
-                <Clock className="h-3 w-3" />
-                {t("invitedOn", {
-                  date: new Date(athlete.invitedAt).toLocaleDateString(locale, { year: "numeric", month: "2-digit", day: "2-digit" }),
-                })}
-              </p>
+              <div className="mt-1 space-y-0.5">
+                <p className="flex items-center gap-1 text-caption text-muted-foreground">
+                  <Clock className="h-3 w-3 shrink-0" />
+                  {t("invitedAgo", {
+                    time: format.relativeTime(new Date(athlete.invitedAt)),
+                  })}
+                </p>
+                {!isExpired && (
+                  <p className="flex items-center gap-1 text-caption text-muted-foreground">
+                    <Hourglass className="h-3 w-3 shrink-0" />
+                    {t("expiresIn", {
+                      time: format.relativeTime(new Date(athlete.invitationExpiresAt)),
+                    })}
+                  </p>
+                )}
+              </div>
             )}
           </div>
         </div>

@@ -3,8 +3,8 @@
 import * as React from "react";
 import { useDroppable, useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
-import { useTranslations } from "next-intl";
-import { ArrowDown, ArrowUp, ArrowUpDown, ChevronDown, GripVertical, Users, UserPlus } from "lucide-react";
+import { useTranslations, useFormatter } from "next-intl";
+import { ArrowDown, ArrowUp, ArrowUpDown, ChevronDown, Clock, GripVertical, Hourglass, Users, UserPlus } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -32,7 +32,10 @@ function DraggableAthleteRow({
   teamName?: string | null;
 }) {
   const tAthletes = useTranslations("athletes");
+  const format = useFormatter();
   const isPending = athlete.status === "pending";
+  const isExpired =
+    isPending && new Date(athlete.invitationExpiresAt) < new Date();
 
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
@@ -87,13 +90,31 @@ function DraggableAthleteRow({
             <p className="truncate text-xs text-muted-foreground">
               {athlete.email}
             </p>
+            {isPending && (
+              <div className="mt-0.5 flex items-center gap-3">
+                <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                  <Clock className="h-3 w-3 shrink-0" />
+                  {tAthletes("invitedAgo", {
+                    time: format.relativeTime(new Date(athlete.invitedAt)),
+                  })}
+                </span>
+                {!isExpired && (
+                  <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                    <Hourglass className="h-3 w-3 shrink-0" />
+                    {tAthletes("expiresIn", {
+                      time: format.relativeTime(new Date(athlete.invitationExpiresAt)),
+                    })}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </TableCell>
       <TableCell>
         {isPending ? (
-          <Badge variant="warning" size="sm">
-            {tAthletes("invitationPending")}
+          <Badge variant={isExpired ? "error" : "warning"} size="sm">
+            {isExpired ? tAthletes("invitationExpired") : tAthletes("invitationPending")}
           </Badge>
         ) : (
           <Badge variant="success" size="sm">

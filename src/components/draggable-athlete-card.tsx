@@ -2,8 +2,8 @@
 
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
-import { useTranslations } from "next-intl";
-import { GripVertical } from "lucide-react";
+import { useTranslations, useFormatter } from "next-intl";
+import { Clock, GripVertical, Hourglass } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -28,7 +28,10 @@ export function DraggableAthleteCard({
 }: DraggableAthleteCardProps) {
   const t = useTranslations("teams");
   const tAthletes = useTranslations("athletes");
+  const format = useFormatter();
   const isPending = athlete.status === "pending";
+  const isExpired =
+    isPending && new Date(athlete.invitationExpiresAt) < new Date();
 
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
@@ -101,12 +104,30 @@ export function DraggableAthleteCard({
                   {athlete.email}
                 </p>
               )}
+              {isPending && (
+                <div className="mt-0.5 space-y-0.5">
+                  <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                    <Clock className="h-3 w-3 shrink-0" />
+                    {tAthletes("invitedAgo", {
+                      time: format.relativeTime(new Date(athlete.invitedAt)),
+                    })}
+                  </p>
+                  {!isExpired && (
+                    <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                      <Hourglass className="h-3 w-3 shrink-0" />
+                      {tAthletes("expiresIn", {
+                        time: format.relativeTime(new Date(athlete.invitationExpiresAt)),
+                      })}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="flex items-center gap-1.5 shrink-0">
               {isPending ? (
-                <Badge variant="warning" size="sm">
-                  {tAthletes("invitationPending")}
+                <Badge variant={isExpired ? "error" : "warning"} size="sm">
+                  {isExpired ? tAthletes("invitationExpired") : tAthletes("invitationPending")}
                 </Badge>
               ) : teamName ? (
                 <Badge variant="outline" size="sm" className="max-w-[120px] truncate">
