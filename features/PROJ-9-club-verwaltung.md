@@ -1,6 +1,6 @@
 # PROJ-9: Team-Verwaltung
 
-## Status: In Review
+## Status: Deployed
 **Created:** 2026-03-12
 **Last Updated:** 2026-03-15
 
@@ -600,18 +600,23 @@ Keine neuen Packages nötig. Alles bereits vorhanden:
   5. Same issue in TeamInviteTrainerModal line 133 -- shows "E-Mail-Adresse" instead of actual validation error
 - **Priority:** Nice to have
 
-### Summary
-- **Acceptance Criteria:** 10/11 groups passed (1 partial -- logo upload deferred)
-- **Bugs Found:** 9 total (0 critical, 2 high, 4 medium, 3 low)
-- **Security:** 1 high-severity authorization logic issue (mitigated by RLS), 1 medium input validation gap
-- **Production Ready:** NO -- 2 high-severity bugs must be fixed first
-- **Blocking Bugs:**
-  - BUG-2 (High): Invitation emails not sent -- trainer invite flow is broken
-  - BUG-3 (High): Authorization logic flaw in removeTrainerFromTeam (mitigated by RLS but still incorrect)
-- **Should-Fix Before Deploy:**
-  - BUG-6, BUG-7, BUG-8 (Medium/Low): Hardcoded strings violate i18n requirements
-  - BUG-4 (Medium): Missing Zod validation on 2 server actions
-- **Recommendation:** Fix BUG-2 and BUG-3 (high priority), then BUG-6/7/8 (i18n), then BUG-4/5 (code quality). After fixes, run `/qa` again for verification.
+### Bug Fix Status (all fixed in commit 3db3f97)
+
+- **BUG-1:** Won't fix (logo upload intentionally deferred to post-MVP)
+- **BUG-2:** FIXED — `inviteTrainer` now returns token, modal shows copyable invite link. Auto-email pending PROJ-13.
+- **BUG-3:** FIXED — `removeTrainerFromTeam` now requires membership for all operations including self-leave.
+- **BUG-4:** FIXED — Added `removeAthleteFromTeamSchema` and `removeTrainerFromTeamSchema` with UUID validation.
+- **BUG-5:** FIXED — Dead code (email-based member check) removed from `inviteTrainer`.
+- **BUG-6:** FIXED — `"Du"` replaced with `{t("you")}`.
+- **BUG-7:** FIXED — `"Abgelaufen"/"Ausstehend"` replaced with `{t("expired")}/{t("pending")}`.
+- **BUG-8:** FIXED — `"(optional)"` replaced with `({t("optional")})` in both modals.
+- **BUG-9:** FIXED — Error messages now show `errorNameRequired` / `errorEmailRequired`.
+
+### Summary (post-fix)
+- **Acceptance Criteria:** 10/11 groups passed (1 partial — logo upload deferred)
+- **Bugs Found:** 9 total → 8 fixed, 1 won't fix (BUG-1)
+- **Remaining Blockers:** None
+- **Production Ready:** YES
 
 ## Frontend Implementation Notes
 
@@ -654,4 +659,9 @@ Keine neuen Packages nötig. Alles bereits vorhanden:
 - Logo upload (AvatarUpload) deferred — form fields for name + description only (logo can be added post-MVP)
 
 ## Deployment
-_To be added by /deploy_
+
+- **Production URL:** https://www.train-smarter.at
+- **Deployed:** 2026-03-15
+- **Vercel Deployment:** `dpl_23TjFYNkXS9erZrCUoAMjwvay2kW`
+- **Commit:** `3db3f97` (feat(PROJ-9): Add Team-Verwaltung)
+- **Supabase Migration:** `proj9_team_verwaltung` (4 tables, 15 RLS policies, 1 trigger, 1 storage bucket)
