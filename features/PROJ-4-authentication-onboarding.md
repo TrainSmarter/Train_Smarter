@@ -2,7 +2,7 @@
 
 ## Status: Deployed
 **Created:** 2026-03-12
-**Last Updated:** 2026-03-13 (Deployed to production)
+**Last Updated:** 2026-03-15 (Enhancement: Sprachsteuerung & Locale-Persistenz)
 
 ## Deployment
 - **Production URL:** https://train-smarter-2.vercel.app
@@ -225,6 +225,157 @@ Komplettes Authentifizierungssystem mit Supabase Auth: Registrierung, Login, Pas
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` — Supabase Anon Key (öffentlich, client-safe)
 - `SUPABASE_SERVICE_ROLE_KEY` — **Server-only**, nie im Client-Bundle
 - `NEXT_PUBLIC_SITE_URL` — Basis-URL für E-Mail-Redirect-Links (`http://localhost:3000` in Dev)
+
+---
+
+## Enhancement: Sprachsteuerung, Locale-Persistenz & Konto-Konsolidierung (2026-03-15)
+
+> Cross-Feature Enhancement zusammen mit PROJ-13. Zwei Ziele:
+> 1. Durchgängige Sprachsteuerung über die gesamte User Journey — von der ersten Seite bis zur E-Mail
+> 2. Konsolidierung aller Konto/Profil/Einstellungen-Seiten in eine zukunftssichere Hub-Struktur
+
+### Neue User Stories
+
+#### Sprachsteuerung
+- Als nicht-eingeloggter Besucher mit englischem Browser möchte ich automatisch auf die englische Version weitergeleitet werden, damit ich die Seite sofort in meiner Sprache sehe
+- Als nicht-eingeloggter Besucher mit deutschem Browser möchte ich automatisch auf die deutsche Version weitergeleitet werden
+- Als nicht-eingeloggter Besucher mit einer nicht unterstützten Browsersprache (z.B. Französisch) möchte ich auf die englische Version weitergeleitet werden, da Englisch die universelle Fallback-Sprache ist
+- Als eingeloggter Benutzer möchte ich meine bevorzugte Sprache in den Einstellungen ändern können, damit alle zukünftigen Interaktionen in meiner gewählten Sprache stattfinden
+- Als Benutzer der die Sprache in den Einstellungen ändert, möchte ich dass die Änderung sofort wirksam wird — sowohl die UI-Sprache als auch alle zukünftigen E-Mails
+
+#### Konto-Konsolidierung
+- Als Benutzer möchte ich alle kontobezogenen Funktionen (Profil, Einstellungen, Datenschutz) an einem Ort finden, statt zwischen verschiedenen Top-Level-Seiten navigieren zu müssen
+- Als Benutzer möchte ich in der Sidebar nur einen einzigen „Konto"-Bereich mit klar strukturierten Unterpunkten sehen
+
+### Neue Acceptance Criteria
+
+#### Browser-Spracherkennung (nicht-eingeloggte Besucher)
+- [ ] Middleware liest `Accept-Language`-Header des Browsers aus
+- [ ] Wenn `Accept-Language` eine deutsche Variante enthält (`de`, `de-AT`, `de-DE`, `de-CH`) → Redirect zu `/de/...`
+- [ ] Wenn `Accept-Language` KEIN Deutsch enthält (egal ob `en`, `fr`, `es`, `ja`, etc.) → Redirect zu `/en/...`
+- [ ] Erkennung greift NUR wenn keine Locale im URL-Pfad ist (Root-Zugriff `www.train-smarter.at` oder Zugriff ohne `/de/` bzw. `/en/` Prefix)
+- [ ] Bereits vorhandener Locale-Prefix in der URL hat Vorrang (User hat aktiv gewählt)
+- [ ] Für eingeloggte User gilt weiterhin `profiles.locale` aus der DB (bestehende Middleware Step 6)
+
+#### Locale-Switcher Platzierung
+- [ ] Auth-Seiten (Login, Register, Forgot-Password, Reset-Password, Verify-Email, Onboarding): Locale-Switcher bleibt sichtbar (bestehend ✅)
+- [ ] Geschützte Seiten (Dashboard, Organisation, etc.): KEIN Locale-Switcher im Header/Topbar
+- [ ] Sprachänderung für eingeloggte User NUR über Konto-Seite (`/account`) → Sektion „Sprache"
+
+#### Konto-Konsolidierung (Seitenstruktur)
+
+**Bisherige Struktur (wird ersetzt):**
+```
+/profile                    ← Profil (separat, losgerissen)
+/account (/konto)           ← Placeholder "Coming Soon"
+/account/settings           ← Placeholder "Coming Soon"
+/account/datenschutz        ← DSGVO (deployed)
+```
+
+**Neue Struktur — nur noch 1 Seite mit 2 Tabs:**
+```
+/account (/konto)  ← Einzige Konto-Seite mit Tab-Navigation:
+                      Tab "Allgemein": Profil + Sprache + Erscheinungsbild + Benachrichtigungen
+                      Tab "Datenschutz": Einwilligungen + Datenübersicht + Trainer-Zugriff + Export + Account-Löschung
+```
+
+- [ ] `/account` (`/konto`): Wird zur **einzigen Konto-Seite** mit 2 Tabs:
+  - **Tab „Allgemein"** (Default-Tab):
+    1. **Profil** — Avatar (mit Upload-on-Hover), Name, E-Mail, Rolle-Badge, Trainer-/Athleten-Verbindungen (übernommen von bisheriger `/profile`-Seite)
+    2. **Sprache** — Dropdown mit „Deutsch" / „English"
+    3. **Erscheinungsbild** — Hell / Dunkel / System Toggle (übernommen aus User-Dropdown)
+    4. **Benachrichtigungen** — Platzhalter „Coming Soon" (vorbereitet für PROJ-14)
+  - **Tab „Datenschutz"**:
+    1. **Einwilligungen** — DSGVO Consents anzeigen/widerrufen (übernommen von bisheriger `/account/datenschutz`-Seite)
+    2. **Datenübersicht** — Gespeicherte Datenkategorien nach Art. 15 DSGVO
+    3. **Trainer-Zugriff** — Welche Trainer Zugriff auf welche Daten haben (nur Athleten-Ansicht)
+    4. **Daten-Export** — DSGVO Art. 20 Export auslösen
+    5. **Account löschen** — 2-Stufen-Löschung mit Grace Period
+- [ ] Tab-Wechsel erfolgt **ohne Seitenreload** (Client-seitig, gleiche URL `/account`)
+- [ ] Tab-State kann optional via URL-Hash persistiert werden (`/account#datenschutz`) für Deep-Links
+- [ ] `/profile`: Wird **entfernt**. Redirect von `/profile` zu `/account` für Abwärtskompatibilität (301 Permanent Redirect)
+- [ ] `/account/settings` (`/konto/einstellungen`): Wird **entfernt**. Redirect zu `/account` (301)
+- [ ] `/account/datenschutz` (`/konto/datenschutz`): Wird **entfernt**. Redirect zu `/account#datenschutz` (301) — leitet zum Datenschutz-Tab
+- [ ] Routing-Config: `/account/settings` und `/account/datenschutz` Pathnames-Einträge werden entfernt, Redirect-Logik in Middleware oder page.tsx
+
+#### Sidebar-Navigation (neu)
+- [ ] Bisherige separate Sidebar-Items (Konto, Einstellungen, Datenschutz, Profil) werden zu **einem einzigen Item** konsolidiert:
+  ```
+  👤 Mein Konto → /konto
+  ```
+- [ ] Nur noch 1 Item statt 4 separate Top-Level-Items — maximale Klarheit
+- [ ] Kein aufklappbares Menü nötig — Tab-Wechsel zwischen Allgemein/Datenschutz passiert auf der Seite selbst
+
+#### User-Dropdown entfernen (UserButton)
+- [ ] Das bisherige Dropdown-Menü (Profil, Einstellungen, Sprache, Erscheinungsbild, Abmelden) wird **komplett entfernt**
+- [ ] **Sidebar-Footer neu:** Avatar + Name + E-Mail (Klick → `/account`) + Logout-Icon-Button (direkt sichtbar, kein Popup)
+  ```
+  ┌───────────────────────────────┐
+  │ [LK] Lukas Kitzberger  [↪]  │
+  │      lukas.kitz...@gmx       │
+  └───────────────────────────────┘
+  ```
+  - Klick auf Avatar/Name → navigiert zu `/account` (Konto-Seite)
+  - `[↪]` = Logout-Icon-Button → löst Abmeldung aus (mit Bestätigungs-Dialog)
+- [ ] **Theme-Switcher** (Hell/Dunkel/System) wandert von Dropdown auf die **Konto-Seite** (`/account`) als Sektion „Erscheinungsbild"
+- [ ] **Locale-Switcher** wandert von Dropdown auf die **Konto-Seite** als Sektion „Sprache"
+
+#### Konto-Seite — Tab „Allgemein" (`/account`)
+- [ ] Card-basiertes Sektionen-Layout mit visueller Trennung, scrollbar
+- [ ] **Sektion Profil** (aktiv — übernommen von `/profile`):
+  - Avatar mit Upload-on-Hover (max 5MB, JPEG/PNG/WebP)
+  - Name, E-Mail (read-only), Rolle-Badge (Trainer/Athlet)
+  - Trainer-Ansicht: „Meine Athleten" Quick-Link → `/organisation`
+  - Athleten-Ansicht: „Mein Trainer" mit Verbindungsinfo + Disconnect-Option
+- [ ] **Sektion Sprache** (aktiv):
+  - Dropdown oder Radio-Buttons mit Optionen „Deutsch" und „English"
+  - Aktuelle Sprache vorausgewählt (aus `profiles.locale`)
+  - Bei Sprachwechsel: sofortige Persistierung in `profiles.locale` UND `user_metadata.locale`
+  - Nach Sprachwechsel: URL wechselt automatisch zur neuen Locale (z.B. `/de/konto` → `/en/account`)
+- [ ] **Sektion Erscheinungsbild** (aktiv — übernommen aus User-Dropdown):
+  - 3 Optionen: Hell, Dunkel, System (gleiche Funktionalität wie bisher im Dropdown)
+  - Aktuelle Auswahl vorausgewählt
+  - Wechsel wird sofort angewendet (kein Speichern-Button nötig)
+  - Theme-Präferenz wird weiterhin im `localStorage` gespeichert (kein DB-Feld nötig)
+- [ ] **Sektion Benachrichtigungen** (Platzhalter): „Coming Soon" mit Construction-Icon — vorbereitet für PROJ-14
+- [ ] Zukunftssicher: Weitere Sektionen können einfach hinzugefügt werden (z.B. Sicherheit, Abrechnung)
+
+#### Konto-Seite — Tab „Datenschutz" (`/account#datenschutz`)
+- [ ] Übernimmt die **komplette bisherige `/account/datenschutz`-Implementierung** (keine funktionale Änderung, nur Umzug)
+- [ ] **Sektion Einwilligungen** — DSGVO Consents anzeigen, widerrufen, erteilen (mit Multi-Step-Dialogen)
+- [ ] **Sektion Datenübersicht** — Gespeicherte Datenkategorien nach Art. 15 DSGVO (Tabelle)
+- [ ] **Sektion Trainer-Zugriff** — Welche Trainer auf welche Daten zugreifen können (nur Athleten-Ansicht, Eye/EyeOff-Badges)
+- [ ] **Sektion Daten-Export** — DSGVO Art. 20 Export auslösen (Rate-Limited: 1x pro 30 Tage)
+- [ ] **Sektion Account löschen** — 2-Stufen-Löschung mit E-Mail-Bestätigung und 30-Tage Grace Period
+
+#### Locale-Fluss durch Auth-Prozess
+- [ ] Registrierung: URL-Locale wird als `user_metadata.locale` gespeichert (bestehend ✅)
+- [ ] `profiles.locale` wird durch Trigger auf Registration-Locale gesetzt (bestehend ✅)
+- [ ] Login: Middleware redirected zu gespeicherter `profiles.locale` (bestehend ✅)
+- [ ] Sprachwechsel auf Auth-Seiten (vor Login): ändert nur die URL, keine DB-Persistierung (kein eingeloggter User)
+
+### Neue Edge Cases
+
+#### Browser-Spracherkennung
+- `Accept-Language: fr-FR, fr;q=0.9, en-US;q=0.8` → `/en/` (kein Deutsch erkannt, Fallback Englisch)
+- `Accept-Language: de-AT, de;q=0.9, en;q=0.8` → `/de/` (Deutsch erkannt)
+- `Accept-Language: *` oder Header fehlt → `/en/` (kein explizites Deutsch, Fallback Englisch)
+- Bot/Crawler ohne `Accept-Language` → `/en/` (internationaler Fallback)
+
+#### Konto-Konsolidierung
+- User hat Bookmark auf `/profile` → 301-Redirect zu `/account` (Bookmark funktioniert weiterhin)
+- User hat `/de/profile` als Lesezeichen → Redirect zu `/de/konto`
+- User hat Bookmark auf `/account/settings` → 301-Redirect zu `/account`
+- User hat Bookmark auf `/account/datenschutz` → 301-Redirect zu `/account#datenschutz` (öffnet Datenschutz-Tab)
+- Andere Features die auf `/profile`, `/account/settings` oder `/account/datenschutz` verlinken → müssen auf `/account` (bzw. `/account#datenschutz`) aktualisiert werden
+- Suchmaschinen-Index für alte URLs → 301-Redirects sorgen für korrekte Umleitung
+- Datenschutz-Tab ist umfangreich → Lazy-Loading des Tab-Inhalts empfohlen (nur laden wenn Tab aktiv)
+
+#### Konto-Seite (Sprache & Erscheinungsbild)
+- User ändert Sprache → Tab/Browser hat noch alten URL-Locale → nach Sprachwechsel wird URL aktualisiert
+- Gleichzeitig auf zwei Geräten eingeloggt, Sprache auf Gerät A geändert → Gerät B bemerkt Änderung beim nächsten Seitenaufruf (Middleware Step 6)
+- User ändert Sprache → schließt Browser → öffnet App erneut → App lädt in neuer Sprache (aus `profiles.locale`)
+- User ändert Theme auf Gerät A → Gerät B behält eigenes Theme (localStorage, nicht synchronisiert — bewusste Entscheidung)
 
 ---
 <!-- Sections below are added by subsequent skills -->
@@ -497,6 +648,134 @@ onboarding.wizard.*   — Wizard-Shell (Progress-Bar, Skip, Back, Next, Fertig)
 | 005 | `create_avatars_bucket` | Privater Bucket; RLS für READ/WRITE auf eigenen Ordner; TODO-Kommentar für PROJ-5-Trainer-Read-Policy |
 | 006 | `create_user_consents_table` | Normalized Schema per PROJ-11; UNIQUE Constraint; RLS: user nur eigene Zeilen |
 | 007 | `deploy_set_user_role_function` | Supabase Edge Function mit Authorization-Check + Idempotenz-Guard + Consent-Check |
+
+### Enhancement Tech Design: Sprachsteuerung & Konto-Konsolidierung (2026-03-15)
+
+#### A) Komponentenstruktur (Enhancement)
+
+```
+src/app/[locale]/(protected)/
+└── account/
+    └── page.tsx                          ← NEU: Einzige Konto-Seite (ersetzt 3 Seiten)
+        ├── AccountTabs                   ← Tab-Container (shadcn/ui Tabs)
+        │   ├── Tab "Allgemein"
+        │   │   ├── ProfileSection        ← Wrapper um bestehende ProfileView
+        │   │   ├── LanguageSection       ← NEU: Dropdown DE/EN
+        │   │   ├── AppearanceSection     ← NEU: Hell/Dunkel/System (aus UserButton)
+        │   │   └── NotificationsSection  ← NEU: Platzhalter "Coming Soon"
+        │   └── Tab "Datenschutz"
+        │       └── PrivacyTabContent     ← Bestehender Datenschutz-Code (aus /account/datenschutz)
+        └── LogoutConfirmDialog           ← NEU: Bestätigungs-Dialog für Logout
+
+src/components/
+├── sidebar-footer.tsx                    ← NEU: Ersetzt UserButton im Sidebar-Footer
+│   ├── Avatar + Name (klickbar → /account)
+│   ├── E-Mail (read-only)
+│   └── LogOut-Icon-Button
+├── profile-view.tsx                      ← BESTEHT: Wird von ProfileSection importiert
+└── user-button.tsx                       ← LÖSCHEN: Nicht mehr benötigt
+
+src/app/api/account/locale/
+└── route.ts                              ← NEU: API-Route zum Speichern der Spracheinstellung
+```
+
+**Gelöschte Seiten (mit 301-Redirects in Middleware):**
+```
+src/app/[locale]/(protected)/profile/           ← LÖSCHEN → Redirect zu /account
+src/app/[locale]/(protected)/account/settings/  ← LÖSCHEN → Redirect zu /account
+src/app/[locale]/(protected)/account/datenschutz/ ← LÖSCHEN → Redirect zu /account#datenschutz
+```
+
+#### B) Datenmodell (Enhancement)
+
+Keine neuen Tabellen oder Spalten nötig. Bestehende Felder werden genutzt:
+
+```
+profiles.locale         — "de" oder "en", wird bei Sprachwechsel aktualisiert (besteht ✅)
+user_metadata.locale    — Gespiegelt für Middleware-Zugriff ohne DB-Abfrage (besteht ✅)
+Theme-Präferenz         — localStorage (next-themes), kein DB-Feld (bewusste Entscheidung: Theme ist gerätespezifisch)
+```
+
+#### C) Middleware-Erweiterungen
+
+Bestehende Middleware-Tabelle erweitert um 2 neue Regeln:
+
+| # | Bedingung | Aktion |
+|---|-----------|--------|
+| NEU-1 | Kein Locale-Prefix in URL + kein eingeloggter User | Accept-Language prüfen: Deutsch erkannt → `/de/...`, sonst → `/en/...` |
+| NEU-2 | Pfad ist `/profile`, `/account/settings` oder `/account/datenschutz` | 301-Redirect zu `/account` (bzw. `/account#datenschutz`) |
+| Bestehend | Session + `user_metadata.locale` ≠ URL-Locale | Redirect zur gespeicherten Sprache |
+
+**Accept-Language Logik:**
+- Header enthält `de`, `de-AT`, `de-DE` oder `de-CH` → Deutsch
+- Alles andere (inkl. `fr`, `es`, fehlender Header, `*`) → Englisch
+
+#### D) Routing-Änderungen
+
+Pathnames-Konfiguration in `routing.ts` wird verschlankt:
+
+| Aktion | Pfad |
+|--------|------|
+| **Behalten** | `/account` → `{ de: "/konto", en: "/account" }` |
+| **Entfernen** | `/account/settings` (Redirect-Logik in Middleware) |
+| **Entfernen** | `/account/datenschutz` (Redirect-Logik in Middleware) |
+| **Entfernen** | `/profile` (Redirect-Logik in Middleware) |
+
+#### E) Sprachwechsel-Ablauf
+
+```
+User auf /de/konto
+  │
+  ├── Klickt "English" in Sprache-Dropdown
+  │
+  ├── 1. Frontend ruft POST /api/account/locale { locale: "en" }
+  │      └── Backend aktualisiert profiles.locale + user_metadata.locale
+  │
+  ├── 2. Frontend ruft router.replace(pathname, { locale: "en" })
+  │      └── next-intl übersetzt URL automatisch: /de/konto → /en/account
+  │
+  └── 3. Seite lädt in Englisch (alle useTranslations-Hooks aktualisieren)
+```
+
+#### F) Sidebar-Footer (Ersatz für UserButton)
+
+```
+Vorher (UserButton):                     Nachher (SidebarFooter):
+┌──────────────────────────┐             ┌──────────────────────────┐
+│ [LK] Lukas Kitzberger  ▾│             │ [LK] Lukas Kitzberger [↪]│
+│      lukas.kitz...@gmx  │             │      lukas.kitz...@gmx   │
+│──────────────────────────│             └──────────────────────────┘
+│ 👤 Mein Profil           │              Klick Avatar/Name → /konto
+│ ⚙ Einstellungen          │              [↪] = Logout (mit Dialog)
+│ 🌐 Sprache: DE | EN      │              Kein Dropdown mehr
+│ 🎨 Hell | Dunkel | System│
+│ ↪ Abmelden               │
+└──────────────────────────┘
+```
+
+#### G) Tab-State & Deep-Linking
+
+- Default-Tab: „Allgemein"
+- URL-Hash `#datenschutz` → öffnet Datenschutz-Tab (für Redirects von alten URLs und direkte Links)
+- Tab-Wechsel: Client-seitig, kein Seitenreload
+- Datenschutz-Tab: Lazy-Loading empfohlen (umfangreiche Seite, nur laden wenn Tab aktiv)
+
+#### H) Neue Dependencies
+
+| Package | Zweck | Status |
+|---------|-------|--------|
+| Keine neuen Dependencies | Alle benötigten Packages bereits installiert (shadcn/ui Tabs, next-themes, next-intl, @supabase/ssr) | ✅ |
+
+#### I) Geänderte Dateien
+
+| Datei | Änderung |
+|-------|----------|
+| `src/middleware.ts` | Accept-Language-Erkennung + 301-Redirects für alte Pfade |
+| `src/lib/nav-config.ts` | 4 Items → 1 Item „Mein Konto" |
+| `src/components/app-sidebar.tsx` | UserButton → SidebarFooter |
+| `src/i18n/routing.ts` | `/account/settings`, `/account/datenschutz`, `/profile` entfernen |
+| `src/messages/de.json` | Neue Keys: `account.tabs.*`, `account.language.*`, `account.appearance.*`, `account.notifications.*` |
+| `src/messages/en.json` | Gleiche neue Keys auf Englisch |
 
 ## Frontend Implementation Notes (2026-03-13)
 

@@ -11,6 +11,7 @@
     "athletes": "Athletes",
     "admin": "Admin",
     "account": "Account",
+    "myAccount": "My Account",
     "settings": "Settings",
     "privacy": "Privacy"
   },
@@ -29,6 +30,8 @@
     "profile": "My Profile",
     "settings": "Settings",
     "signOut": "Sign out",
+    "logoutDialogTitle": "Sign out?",
+    "logoutDialogMessage": "Are you sure you want to sign out?",
     "appearance": "Appearance",
     "light": "Light",
     "dark": "Dark",
@@ -544,6 +547,24 @@
     "viewAthletes": "Manage Athletes",
     "viewAthletesDesc": "All your athletes at a glance.",
     "errorGeneric": "An error occurred. Please try again."
+  },
+  "account": {
+    "title": "My Account",
+    "subtitle": "Manage your profile, language, appearance, and privacy settings.",
+    "tabGeneral": "General",
+    "tabPrivacy": "Privacy",
+    "languageTitle": "Language",
+    "languageDescription": "Choose your preferred language. All future emails will also be sent in this language.",
+    "languageSaved": "Language has been changed.",
+    "languageError": "Could not save language. Please try again.",
+    "appearanceTitle": "Appearance",
+    "appearanceDescription": "Choose between light, dark, or system appearance.",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System",
+    "notificationsTitle": "Notifications",
+    "notificationsDescription": "Manage your notification settings.",
+    "errorLoading": "Could not load account data."
   },
   "localeSwitcher": {
     "de": "DE",

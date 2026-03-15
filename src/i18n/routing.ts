@@ -14,9 +14,7 @@ export const routing = defineRouting({
     "/dashboard": "/dashboard",
     "/training": "/training",
     "/feedback": "/feedback",
-    "/profile": "/profile",
     "/account": { de: "/konto", en: "/account" },
-    "/account/settings": { de: "/konto/einstellungen", en: "/account/settings" },
     "/onboarding": "/onboarding",
     "/organisation": "/organisation",
     "/organisation/athletes": "/organisation/athletes",
@@ -27,9 +25,5 @@ export const routing = defineRouting({
     "/datenschutz": { de: "/datenschutz", en: "/privacy" },
     "/impressum": { de: "/impressum", en: "/imprint" },
     "/agb": { de: "/agb", en: "/terms" },
-    "/account/datenschutz": {
-      de: "/konto/datenschutz",
-      en: "/account/privacy",
-    },
   },
 });

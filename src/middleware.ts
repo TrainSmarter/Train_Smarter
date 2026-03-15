@@ -65,6 +65,42 @@ function isValidReturnUrl(url: string): boolean {
   return url.startsWith("/") && !url.startsWith("//") && !url.includes("://");
 }
 
+/**
+ * Detect preferred locale from Accept-Language header.
+ * Returns "de" if any German variant is detected, otherwise "en".
+ */
+function detectLocaleFromAcceptLanguage(request: NextRequest): "de" | "en" {
+  const acceptLanguage = request.headers.get("accept-language") ?? "";
+  // Check if any German variant appears in the header
+  const hasGerman = /\bde\b/i.test(acceptLanguage);
+  return hasGerman ? "de" : "en";
+}
+
+/** Old paths that need 301 redirects to consolidated /account page */
+const LEGACY_REDIRECTS: Record<string, string> = {
+  "/profile": "/account",
+  "/account/settings": "/account",
+  "/account/datenschutz": "/account",
+  // Localized variants
+  "/konto/einstellungen": "/account",
+  "/konto/datenschutz": "/account",
+};
+
+/** Check if path needs a 301 redirect (consolidated old routes) */
+function getLegacyRedirectTarget(cleanPath: string): string | null {
+  // Check exact match for legacy paths
+  for (const [oldPath, newPath] of Object.entries(LEGACY_REDIRECTS)) {
+    if (cleanPath === oldPath) {
+      // Datenschutz routes redirect to privacy tab
+      if (oldPath.includes("datenschutz")) {
+        return `${newPath}#datenschutz`;
+      }
+      return newPath;
+    }
+  }
+  return null;
+}
+
 export default async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
@@ -86,6 +122,26 @@ export default async function middleware(request: NextRequest) {
   // Detect locale from URL for redirects
   const localeMatch = pathname.match(/^\/(de|en)(\/|$)/);
   const locale = localeMatch ? localeMatch[1] : routing.defaultLocale;
+
+  // 1.5 Browser language detection for non-logged-in visitors without locale prefix
+  if (!user && !localeMatch && cleanPathname === "/" && pathname === "/") {
+    const detectedLocale = detectLocaleFromAcceptLanguage(request);
+    // Let next-intl handle the redirect with the detected locale
+    // We set the cookie so next-intl picks it up
+    const response = intlMiddleware(request);
+    if (detectedLocale !== routing.defaultLocale) {
+      const redirectUrl = new URL(`/${detectedLocale}${cleanPathname}`, request.url);
+      return NextResponse.redirect(redirectUrl);
+    }
+    return response;
+  }
+
+  // 1.6 301 redirects for consolidated old routes
+  const legacyTarget = getLegacyRedirectTarget(cleanPathname);
+  if (legacyTarget) {
+    const redirectUrl = new URL(`/${locale}${legacyTarget}`, request.url);
+    return NextResponse.redirect(redirectUrl, 301);
+  }
 
   // 2. No session + protected route -> redirect to /login
   if (!user && isProtectedRoute(cleanPathname)) {

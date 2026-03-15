@@ -54,7 +54,7 @@ export async function GET(request: Request) {
       );
     case "email_change":
       return NextResponse.redirect(
-        new URL(`/${locale}/settings`, origin)
+        new URL(`/${locale}/account`, origin)
       );
     case "signup":
     case "email":

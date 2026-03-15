@@ -18,7 +18,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { NavMain } from "@/components/nav-main";
-import { UserButton } from "@/components/user-button";
+import { SidebarFooterUser } from "@/components/sidebar-footer-user";
 import type { AuthUser } from "@/lib/mock-session";
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
@@ -84,7 +84,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
             <SidebarSeparator />
           </>
         )}
-        {user && <UserButton user={user} />}
+        {user && <SidebarFooterUser user={user} />}
       </SidebarFooter>
 
       <SidebarRail />

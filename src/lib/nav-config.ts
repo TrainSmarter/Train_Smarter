@@ -3,10 +3,8 @@ import {
   Dumbbell,
   Activity,
   Users,
-  Settings,
   User,
   Shield,
-  ShieldCheck,
   type LucideIcon,
 } from "lucide-react";
 import type { UserRole } from "@/lib/mock-session";
@@ -94,25 +92,9 @@ export const navConfig: NavEntry[] = [
   {
     type: "item",
     item: {
-      labelKey: "account",
+      labelKey: "myAccount",
       icon: User,
       path: "/account",
-    },
-  },
-  {
-    type: "item",
-    item: {
-      labelKey: "settings",
-      icon: Settings,
-      path: "/account/settings",
-    },
-  },
-  {
-    type: "item",
-    item: {
-      labelKey: "privacy",
-      icon: ShieldCheck,
-      path: "/account/datenschutz",
     },
   },
 ];

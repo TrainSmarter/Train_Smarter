@@ -11,6 +11,7 @@
     "athletes": "Athleten",
     "admin": "Admin",
     "account": "Konto",
+    "myAccount": "Mein Konto",
     "settings": "Einstellungen",
     "privacy": "Datenschutz"
   },
@@ -29,6 +30,8 @@
     "profile": "Mein Profil",
     "settings": "Einstellungen",
     "signOut": "Abmelden",
+    "logoutDialogTitle": "Abmelden?",
+    "logoutDialogMessage": "Möchtest du dich wirklich abmelden?",
     "appearance": "Erscheinungsbild",
     "light": "Hell",
     "dark": "Dunkel",
@@ -544,6 +547,24 @@
     "viewAthletes": "Athleten verwalten",
     "viewAthletesDesc": "Alle deine Athleten auf einen Blick.",
     "errorGeneric": "Ein Fehler ist aufgetreten. Bitte versuche es erneut."
+  },
+  "account": {
+    "title": "Mein Konto",
+    "subtitle": "Verwalte dein Profil, Sprache, Erscheinungsbild und Datenschutz.",
+    "tabGeneral": "Allgemein",
+    "tabPrivacy": "Datenschutz",
+    "languageTitle": "Sprache",
+    "languageDescription": "Wähle deine bevorzugte Sprache. Alle zukünftigen E-Mails werden ebenfalls in dieser Sprache versendet.",
+    "languageSaved": "Sprache wurde geändert.",
+    "languageError": "Sprache konnte nicht gespeichert werden. Bitte versuche es erneut.",
+    "appearanceTitle": "Erscheinungsbild",
+    "appearanceDescription": "Wähle zwischen hellem, dunklem oder systemabhängigem Erscheinungsbild.",
+    "themeLight": "Hell",
+    "themeDark": "Dunkel",
+    "themeSystem": "System",
+    "notificationsTitle": "Benachrichtigungen",
+    "notificationsDescription": "Verwalte deine Benachrichtigungseinstellungen.",
+    "errorLoading": "Kontodaten konnten nicht geladen werden."
   },
   "localeSwitcher": {
     "de": "DE",

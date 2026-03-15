@@ -1,19 +1,10 @@
-import { getTranslations } from "next-intl/server";
-import { Construction } from "lucide-react";
+import { redirect } from "next/navigation";
 
-export default async function SettingsPage() {
-  const t = await getTranslations("common");
-  const tNav = await getTranslations("nav");
-
-  return (
-    <div className="flex flex-1 items-center justify-center p-8">
-      <div className="text-center space-y-4">
-        <Construction className="mx-auto h-12 w-12 text-muted-foreground" />
-        <h1 className="text-heading-3 font-semibold">{tNav("settings")}</h1>
-        <p className="text-body text-muted-foreground max-w-md">
-          {t("comingSoonDescription")}
-        </p>
-      </div>
-    </div>
-  );
+/**
+ * Legacy route: /account/settings
+ * Redirects to /account (consolidated account page).
+ * The 301 redirect is handled by middleware, but this serves as a fallback.
+ */
+export default function LegacySettingsPage() {
+  redirect("/account");
 }

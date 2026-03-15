@@ -2,7 +2,7 @@
 
 ## Status: Planned
 **Created:** 2026-03-12
-**Last Updated:** 2026-03-12
+**Last Updated:** 2026-03-15 (Enhancement: E-Mail-Locale basierend auf Seitensprache)
 
 ## Dependencies
 - Requires: PROJ-4 (Authentication & Onboarding) — Auth-E-Mails (Registrierung, Passwort-Reset, E-Mail-Bestätigung)
@@ -127,6 +127,49 @@ Vollständige E-Mail-Infrastruktur für alle Transaktions-Mails der App. Umfasst
 | 12 | Trainer verlässt Plattform | Dein Trainer hat die Plattform verlassen | Your coach has left the platform | Alle Athleten des Trainers |
 
 ---
+
+## Enhancement: E-Mail-Locale basierend auf Seitensprache (2026-03-15)
+
+> Cross-Feature Enhancement zusammen mit PROJ-4. Ziel: E-Mails werden in der Sprache versendet, die der User zum Zeitpunkt der Anfrage auf der Seite ausgewählt hat.
+
+### Präzisierte Locale-Bestimmung für E-Mails
+
+**Bisherige Regel (Zeile 91):** „Sprache wird anhand `profiles.locale` des Empfängers bestimmt"
+
+**Neue, differenzierte Regel:**
+
+| Szenario | E-Mail-Locale | Begründung |
+|----------|--------------|-------------|
+| Registrierung (E-Mail-Bestätigung) | URL-Locale zum Zeitpunkt der Registrierung | User ist auf `/en/register` → Bestätigungs-E-Mail auf Englisch |
+| Passwort zurücksetzen | URL-Locale zum Zeitpunkt der Anfrage | User ist auf `/en/forgot-password` → Recovery-E-Mail auf Englisch |
+| Einladung an nicht-registrierten Athleten | `profiles.locale` des einladenden Trainers | Eingeladener hat noch kein Profil; Trainer-Sprache als Proxy |
+| Alle E-Mails an registrierte & eingeloggte User | `profiles.locale` des Empfängers | Gespeicherte Präferenz ist maßgeblich |
+
+### Neue Acceptance Criteria
+
+#### Auth-E-Mails: Locale aus URL-Kontext
+- [ ] **E-Mail-Bestätigung** (Registrierung): E-Mail wird in der Sprache versendet, die der User auf der Registrierungsseite gewählt hat (URL-Locale)
+- [ ] **Passwort-Reset**: E-Mail wird in der Sprache versendet, die auf der Forgot-Password-Seite aktiv ist (URL-Locale)
+- [ ] **E-Mail-Änderung**: E-Mail wird in `profiles.locale` des eingeloggten Users versendet
+- [ ] Auth Hook / Edge Function erhält die Locale-Information und wählt das passende Template (DE/EN)
+- [ ] Fallback wenn keine Locale ermittelbar: Deutsch (`de`)
+
+#### App-E-Mails: Locale aus Profil
+- [ ] Alle App-E-Mails (Einladungen, Export, Verbindungen, Account-Löschung) verwenden `profiles.locale` des Empfängers
+- [ ] Ausnahme Einladung an nicht-registrierte Athleten: Sprache des einladenden Trainers
+
+#### Locale-Konsistenz nach Sprachwechsel
+- [ ] Wenn ein User seine Sprache in den Einstellungen ändert (PROJ-4 Enhancement), werden ab sofort ALLE zukünftigen E-Mails in der neuen Sprache versendet
+- [ ] Bereits versendete E-Mails werden natürlich nicht nachträglich geändert
+
+### Neue Edge Cases
+
+- User auf `/en/forgot-password` fordert Reset an, hat aber `profiles.locale = "de"` → E-Mail kommt auf Englisch (aktuelle Seitensprache hat Vorrang bei Auth-Flows)
+- User fordert Reset auf `/de/forgot-password` an, ändert dann die Browsersprache → keine Auswirkung, Locale wurde bei Anfrage erfasst
+- Einladung an Athlet der noch nie auf der Plattform war → Trainer-Sprache wird verwendet; Athlet kann nach Registrierung seine eigene Sprache wählen
+- Auth Hook kann `profiles.locale` nicht lesen (DB-Fehler) → Fallback auf Deutsch
+
+---
 <!-- Sections below are added by subsequent skills -->
 
 ## Tech Design (Solution Architect)
@@ -162,49 +205,138 @@ supabase/templates/
 
 **Ablauf:** Registrierung (URL-Locale) → `profiles.locale` → Auth Hook liest locale → Template-Auswahl → SMTP-Versand
 
-## QA Test Results
+### Enhancement Tech Design: E-Mail-Locale basierend auf Seitensprache (2026-03-15)
 
-**Tested:** 2026-03-15
+#### A) Differenzierte Locale-Bestimmung
+
+Die bisherige Regel „`profiles.locale` bestimmt immer die E-Mail-Sprache" wird differenziert:
+
+```
+Auth-E-Mail ausgelöst
+  │
+  ├── Registrierung / Passwort-Reset?
+  │     └── JA → Locale aus URL-Kontext extrahieren
+  │           (User auf /en/register → E-Mail auf Englisch)
+  │
+  └── Eingeloggter User / App-Event?
+        └── JA → profiles.locale des Empfängers verwenden
+              (Gespeicherte Präferenz ist maßgeblich)
+```
+
+**Warum?** Bei Registrierung/Passwort-Reset hat der User bewusst eine Sprachversion der Seite gewählt. Diese Wahl soll sich in der E-Mail widerspiegeln — unabhängig von einem möglicherweise veralteten `profiles.locale`.
+
+#### B) Auth Hook — Locale-Erkennung nach Event-Typ
+
+Der Auth Hook (Edge Function `send-auth-email`) bestimmt die Locale je nach Szenario:
+
+| Event-Typ | Locale-Quelle | Wie |
+|-----------|--------------|-----|
+| `confirmation` (Registrierung) | URL bei Registrierung | Aus `redirect_to`-URL den Locale-Prefix extrahieren (`/en/...` → `en`) |
+| `recovery` (Passwort-Reset) | URL bei Anfrage | Aus `redirect_to`-URL oder Referrer-Header |
+| `email_change` | Gespeicherte Präferenz | `profiles.locale` des eingeloggten Users |
+| `magic_link` | Gespeicherte Präferenz | `profiles.locale` des Users |
+| `invite` (Supabase native) | Gespeicherte Präferenz | `profiles.locale` des einladenden Trainers |
+
+**Fallback-Kette:** URL-Locale → `user_metadata.locale` → `profiles.locale` → `"de"` (Default)
+
+#### C) Auth Hook — Ablauf
+
+```
+Supabase Auth Event
+  │
+  ├── 1. Event-Daten empfangen (user_id, email, event_type, redirect_to)
+  │
+  ├── 2. Locale bestimmen
+  │      ├── confirmation/recovery → Locale aus redirect_to URL extrahieren
+  │      └── andere → profiles.locale aus DB lesen
+  │
+  ├── 3. Template wählen (z.B. recovery_en.html oder recovery_de.html)
+  │
+  ├── 4. Template rendern (Variablen: Bestätigungslink, Site-URL, etc.)
+  │
+  ├── 5. Betreff in passender Sprache setzen
+  │
+  ├── 6. Via SMTP senden (s306.goserver.host:465, noreply@train-smarter.at)
+  │      ├── HTML-Body + Plain-Text-Fallback (behebt BUG-10)
+  │      └── Reply-To: office@train-smarter.at (behebt BUG-4)
+  │
+  └── 7. Ergebnis an Supabase zurückmelden
+```
+
+#### D) Dateistruktur (Auth Hook)
+
+```
+supabase/functions/
+└── send-auth-email/
+    └── index.ts              ← Auth Hook Edge Function
+                                 (Templates bleiben in supabase/templates/ — bereits vorhanden)
+```
+
+**Konfiguration:** Supabase Dashboard → Auth → Hook → „Send Email" auf die Edge Function zeigen
+
+#### E) Abhängigkeit zu PROJ-4
+
+Der Sprachwechsel auf der Konto-Seite (PROJ-4 Enhancement) aktualisiert `profiles.locale`. Ab diesem Moment verwenden alle zukünftigen E-Mails die neue Sprache. Die Auth Hook Edge Function muss IMMER den aktuellen `profiles.locale`-Wert lesen (nicht cachen).
+
+#### F) Neue Dependencies
+
+| Package | Zweck | Status |
+|---------|-------|--------|
+| Deno SMTP Library | E-Mail-Versand in Edge Function | Wird in Edge Function importiert (Deno-Ökosystem) |
+| Keine npm-Dependencies | Edge Functions laufen in Deno, nicht Node.js | — |
+
+## QA Test Results (Re-Test #2)
+
+**Tested:** 2026-03-15 (Re-Test)
+**Previous QA:** 2026-03-15 (initial)
 **App URL:** https://www.train-smarter.at + http://localhost:3000
 **Tester:** QA Engineer (AI)
+**Build:** PASS (npm run build succeeds, 0 errors)
 
 ### Scope Note
 
-PROJ-13 is a large feature covering Supabase Auth emails (Phase 1), App-event emails via Edge Functions (Phase 2), and DNS deliverability (infrastructure). Based on the current codebase, only the Supabase Auth email templates, locale infrastructure, and auth confirm/callback routes have been implemented so far. The Edge Functions for app-event emails (athlete invitations accepted/declined, connection disconnected, data export, account deletion) are NOT yet implemented. This QA covers what exists.
+PROJ-13 covers Supabase Auth emails (Phase 1), App-event emails via Edge Functions (Phase 2), and DNS deliverability (infrastructure). Since the last QA run, the `send-auth-email` Edge Function has been implemented (`supabase/functions/send-auth-email/index.ts`), which addresses the previously HIGH-severity BUG-9. The recovery templates have been updated with link-expiry notices (BUG-7 fixed). The Edge Function includes Reply-To headers (BUG-4 fixed) and plain-text fallback generation (BUG-10 fixed). However, the Edge Function is NOT yet wired up as an Auth Hook in Supabase Dashboard/config.toml, and App-event emails (Phase 2) remain unimplemented.
 
 ---
 
 ### AC-1: E-Mail-Infrastruktur Setup
 
-- [x] Supabase Custom SMTP konfiguriert: `s306.goserver.host`, Port 465 (SSL), `noreply@train-smarter.at` -- verified in `supabase/config.toml`
-- [ ] BUG-1: Port mismatch -- spec says "Port 587 (TLS)" but config uses Port 465 (SSL). Both work, but spec and implementation are inconsistent.
-- [ ] BUG-2: SPF-Eintrag -- cannot verify from code alone; no documentation or verification script exists for DNS records (SPF, DKIM). Needs manual verification in Webgo DNS panel.
-- [ ] BUG-3: DKIM-Signatur -- same as above, no evidence of DKIM configuration in codebase. Needs manual verification.
+- [x] PASS: Supabase Custom SMTP konfiguriert: `s306.goserver.host`, Port 465 (SSL), `noreply@train-smarter.at` -- verified in `supabase/config.toml`
+- [x] PASS (partial): Edge Function `send-auth-email` includes Reply-To header `office@train-smarter.at` (line 248). This fixes previous BUG-4 -- but only when the Edge Function is active as Auth Hook.
+- [ ] BUG-1: Port mismatch -- spec says "Port 587 (TLS)" but both config.toml and Edge Function use Port 465 (SSL). Both work, but spec and implementation are inconsistent.
+- [ ] BUG-2: SPF record -- cannot verify from code alone; no documentation or verification script exists for DNS records (SPF, DKIM). Needs manual verification in Webgo DNS panel.
+- [ ] BUG-3: DKIM signature -- same as above, no evidence of DKIM configuration in codebase. Needs manual verification.
 - [ ] CANNOT TEST: Test-E-Mail delivery to inbox vs. spam -- requires sending actual emails and checking deliverability.
-- [ ] BUG-4: No Reply-To or List-Unsubscribe headers in any template -- spec requires "all E-Mails haben korrekte Headers: From, Reply-To, List-Unsubscribe". Supabase Auth templates use Go template variables and do not support custom headers. Reply-To would need to be configured at SMTP/Supabase level.
 
 ### AC-2: Supabase Auth E-Mails (via Custom SMTP)
 
-- [x] Registrierung / E-Mail-Bestätigung: template exists (`confirmation_de.html` / `confirmation_en.html`), Absender configured as `noreply@train-smarter.at`
-- [ ] BUG-5: Betreff mismatch -- spec says "Bitte bestaetige deine E-Mail-Adresse -- Train Smarter" but `config.toml` uses "Bestaetige deine E-Mail-Adresse" (missing "Bitte" prefix and "-- Train Smarter" suffix)
-- [x] Passwort-Reset: template exists (`recovery_de.html` / `recovery_en.html`), link points to `/reset-password`
-- [ ] BUG-6: Passwort-Reset Betreff mismatch -- spec says "Passwort zuruecksetzen -- Train Smarter" but config uses "Passwort zuruecksetzen" (missing "-- Train Smarter" suffix)
-- [ ] BUG-7: Recovery link validity -- spec says "Link gueltig 1h". Config has `otp_expiry = 3600` (1h) which is correct, but this is NOT communicated in the email template body. Users don't know the link expires.
+- [x] PASS: Registrierung / E-Mail-Bestätigung: template exists (`confirmation_de.html` / `confirmation_en.html`), Absender configured as `noreply@train-smarter.at`
+- [x] PASS: Passwort-Reset: template exists (`recovery_de.html` / `recovery_en.html`), link points to `/reset-password`
+- [x] PASS: Recovery link expiry notice -- both `recovery_de.html` (line 38: "Dieser Link ist **1 Stunde** gueltig") and `recovery_en.html` (line 38: "This link is valid for **1 hour**") now communicate the expiry. Previous BUG-7 is FIXED.
+- [x] PASS: All Auth E-Mails have bilingual templates (DE + EN) -- 10 templates total: 5 types x 2 languages
+- [x] PASS: Consistent layout: Logo/header with Teal gradient (#0D9488), white card body, footer with copyright
+- [ ] BUG-5: Confirmation email subject mismatch -- Edge Function uses "Bitte bestaetige deine E-Mail-Adresse -- Train Smarter" (correct per spec), but `config.toml` still uses "Bestaetige deine E-Mail-Adresse" (no "Bitte" prefix, no suffix). When the Edge Function is active as Auth Hook, the config.toml subject is irrelevant. But currently config.toml is what Supabase uses.
+- [ ] BUG-6: Recovery email subject mismatch -- Edge Function uses "Passwort zuruecksetzen -- Train Smarter" (correct per spec), but `config.toml` still uses "Passwort zuruecksetzen". Same as BUG-5: only matters while Auth Hook is not active.
 - [ ] BUG-8: E-Mail-Adresse aendern -- templates exist but spec requires BOTH a confirmation to the new address AND a notification to the old address. Only one template exists (confirmation to new). No "heads-up" email to old address.
-- [x] All Auth E-Mails have bilingual templates (DE + EN) -- 10 templates total: 5 types x 2 languages
-- [x] Consistent layout: Logo/header with Teal gradient (#0D9488), white card body, footer with copyright
 
 ### AC-3: Bilingual Template Selection (Auth Hook)
 
-- [ ] BUG-9 (HIGH): Auth Hook / Edge Function for locale-based template selection does NOT exist. The `supabase/functions/` directory is empty. The `config.toml` hardcodes the German (`_de.html`) templates for ALL auth email types. English users will receive German emails regardless of their `profiles.locale` setting. The English templates exist but are never used by Supabase Auth.
-- [x] `profiles.locale` column exists with CHECK constraint (`'de'`, `'en'`), default `'de'`
-- [x] `handle_new_user()` trigger correctly reads `locale` from `raw_user_meta_data` during registration
-- [x] Registration form passes `locale: currentLocale` in user metadata via `signUp()` options
+- [x] PASS: Edge Function `send-auth-email/index.ts` exists with full locale-detection logic:
+  - signup/recovery: extracts locale from `redirect_to` URL (line 81-91)
+  - email_change/magiclink/invite: reads `profiles.locale` from DB (line 94-103)
+  - Fallback chain: URL locale -> user_metadata.locale -> profiles.locale -> "de" (line 108-112)
+- [x] PASS: Locale extraction uses strict allowlist (`"de"` or `"en"` only) -- no injection possible (lines 90, 101, 110, 124)
+- [x] PASS: Template rendering replaces Go template variables with actual payload values (lines 167-175)
+- [x] PASS: Plain-text fallback generated via `htmlToPlainText()` function (lines 184-213). Previous BUG-10 is FIXED.
+- [x] PASS: Reply-To header set to `office@train-smarter.at` (line 248). Previous BUG-4 is FIXED.
+- [x] PASS: `profiles.locale` column exists with CHECK constraint, default `'de'`
+- [x] PASS: `handle_new_user()` trigger correctly reads `locale` from `raw_user_meta_data`
+- [x] PASS: Registration form passes `locale: currentLocale` in user metadata
+- [ ] BUG-9 (DOWNGRADED to MEDIUM): Auth Hook Edge Function CODE exists but is NOT WIRED UP. The `config.toml` has no `[auth.hook.send_email]` section. The Edge Function must be registered as a Send Email Hook in Supabase Dashboard (Auth -> Hooks -> Send Email). Until then, Supabase still uses the hardcoded German templates from `config.toml`, making the Edge Function dead code. English users still receive German emails.
 
 ### AC-4: Athleten-Einladung (PROJ-5)
 
-- [ ] NOT IMPLEMENTED: No Edge Function for athlete invitation emails. The invite template in `supabase/templates/invite_de.html` is a generic Supabase auth invite, not the PROJ-5 athlete invitation email.
-- [ ] NOT IMPLEMENTED: Invite email does not include trainer name, personal message, 7-day expiry notice, or privacy policy footer as specified.
+- [ ] NOT IMPLEMENTED: No Edge Function for athlete invitation emails (PROJ-5 specific). The `invite_de.html`/`invite_en.html` are generic Supabase auth invite templates, not the PROJ-5 athlete invitation with trainer name, personal message, 7-day expiry, privacy policy footer.
 
 ### AC-5: Einladung angenommen / abgelehnt
 
@@ -216,37 +348,44 @@ PROJ-13 is a large feature covering Supabase Auth emails (Phase 1), App-event em
 
 ### AC-7: Daten-Export bereit (PROJ-11)
 
-- [ ] NOT IMPLEMENTED: Depends on PROJ-11 which is Planned status.
+- [ ] NOT IMPLEMENTED: PROJ-11 is Deployed but export is currently synchronous (direct download). Email would be needed if export becomes async.
 
 ### AC-8: Account-Loeschung (PROJ-11)
 
-- [ ] NOT IMPLEMENTED: Depends on PROJ-11 which is Planned status.
+- [ ] NOT IMPLEMENTED: API routes exist (`/api/gdpr/delete-account`) but no email integration.
 
 ### AC-9: Trainer verlaesst Plattform
 
-- [ ] NOT IMPLEMENTED: Depends on PROJ-11 which is Planned status.
+- [ ] NOT IMPLEMENTED: No email to athletes when trainer deletes account.
 
 ### AC-10: E-Mail-Template Design
 
-- [x] Einheitliches HTML-Template: All 10 templates share the same structure (header with teal gradient, white body card, gray footer)
-- [x] Responsive HTML: Templates use `width="560"` table layout with `padding:40px` -- reasonable for email clients
-- [ ] BUG-10: No plain-text fallback for any email template. Spec requires "Plain-Text-Fallback fuer alle E-Mails (Spam-Filter-Optimierung)". Supabase Auth only sends the HTML version from `content_path`.
-- [x] Zweisprachig: Both DE and EN versions exist for all 5 auth template types
-- [ ] BUG-9 (duplicate): Sprache wird NICHT anhand `profiles.locale` bestimmt -- config hardcodes DE templates. See BUG-9 above.
+- [x] PASS: Einheitliches HTML-Template: All 10 templates share the same structure (header with teal gradient, white body card, gray footer)
+- [x] PASS: Responsive HTML: Templates use `width="560"` table layout with `padding:40px` -- standard for email clients
+- [x] PASS: Plain-text fallback generated by Edge Function's `htmlToPlainText()`. Previous BUG-10 is FIXED (when Hook is active).
+- [x] PASS: Zweisprachig: Both DE and EN versions exist for all 5 auth template types
+- [ ] BUG-10-PARTIAL: While Edge Function generates plain-text, if Auth Hook is NOT active, Supabase still sends HTML-only from `content_path`. Tied to BUG-9.
+
+### Enhancement: E-Mail-Locale basierend auf Seitensprache
+
+- [x] PASS: Edge Function implements differentiated locale rules per spec (signup/recovery from URL, others from profiles.locale)
+- [x] PASS: Fallback chain matches spec: URL locale -> user_metadata.locale -> profiles.locale -> "de"
+- [ ] Depends on BUG-9 being resolved (Hook must be active for any of this to work)
 
 ---
 
 ### Edge Cases Status
 
 #### EC-1: SMTP-Server nicht erreichbar
-- [x] Forgot-password page handles SMTP errors with specific error message (`t("smtpError")`) when error contains "smtp" or "send"
-- [ ] BUG-11: No retry/queue mechanism for failed emails. Spec says "3 Versuche in 1h". This would require an Edge Function or backend job -- not implemented.
+- [x] PASS: Forgot-password page handles SMTP errors with specific error message (`t("smtpError")`)
+- [x] PASS: Edge Function wraps SMTP in try/finally to ensure client.close() (line 251)
+- [ ] BUG-11: No retry/queue mechanism. Spec says "3 Versuche in 1h". Edge Function returns 500 on failure but does not retry.
 
 #### EC-2: E-Mail-Adresse nicht zustellbar (Bounce)
-- [ ] NOT IMPLEMENTED: No bounce handling or logging. Depends on Edge Function infrastructure.
+- [ ] NOT IMPLEMENTED: No bounce handling or logging.
 
 #### EC-3: Einladungs-E-Mail landet im Spam
-- [x] Verify-email page shows "check spam" hint via `t("checkSpam")`
+- [x] PASS: Verify-email page shows "check spam" hint via `t("checkSpam")`
 
 #### EC-4: E-Mail-Versand fuer geloeschten Account
 - [ ] NOT IMPLEMENTED: No system check for deleted accounts before sending.
@@ -255,37 +394,50 @@ PROJ-13 is a large feature covering Supabase Auth emails (Phase 1), App-event em
 
 ### Security Audit Results
 
-- [x] Auth confirm route validates `tokenHash` and `type` params before calling `verifyOtp` -- cannot forge tokens
-- [x] Auth callback route validates `code` param before calling `exchangeCodeForSession`
-- [x] Locale extraction in auth routes uses allowlist (`"de"` or `"en"` only, defaults to `"de"`) -- no locale injection
-- [x] Token hash not exposed in error redirects -- error codes/messages are URL-encoded but do not contain token data
-- [x] `Referrer-Policy: no-referrer` set for auth routes in `next.config.ts` -- prevents token leakage via Referer header
-- [x] SMTP password uses `env(SMTP_PASS)` reference in config -- not hardcoded
-- [x] CSP headers block frame embedding (`frame-ancestors 'none'`) -- prevents clickjacking on auth pages
-- [ ] BUG-12 (MEDIUM): No `.env.local.example` file exists. The `SMTP_PASS` and other required environment variables are not documented for other developers. Security rule requires "Document all required env vars in `.env.local.example` with dummy values."
-- [x] Registration prevents account enumeration -- `signUp` returns identical response for new and existing accounts
-- [x] Forgot-password prevents account enumeration -- shows success even on auth errors (except rate limit and SMTP)
-- [ ] BUG-13 (LOW): Confirmation email link uses `{{ .SiteURL }}` which is set to `https://www.train-smarter.at` in production. However, the link format is `/auth/confirm?token_hash=...&type=signup` -- this does NOT include a locale prefix. The auth confirm route at `src/app/[locale]/auth/confirm/route.ts` requires a locale prefix in the URL path. The link will likely be caught by next-intl middleware and redirected to `/de/auth/confirm?...` but this adds an unnecessary redirect hop.
-- [x] Rate limiting: Supabase built-in rate limit (`max_frequency = "60s"`) prevents email flooding
-- [x] Input validation on register form uses Zod schema (`registerSchema`)
+- [x] PASS: Auth confirm route validates `tokenHash` and `type` params before calling `verifyOtp`
+- [x] PASS: Auth callback route validates `code` param before calling `exchangeCodeForSession`
+- [x] PASS: Locale extraction in both auth routes AND Edge Function uses strict allowlist (`"de"` or `"en"` only, defaults to `"de"`)
+- [x] PASS: Token hash not exposed in error redirects
+- [x] PASS: `Referrer-Policy: no-referrer` set for auth routes in `next.config.ts`
+- [x] PASS: SMTP password uses `env(SMTP_PASS)` in config.toml (not hardcoded)
+- [x] PASS: Edge Function reads SMTP_PASS from `Deno.env.get()` (line 226) -- env var, not hardcoded
+- [x] PASS: CSP headers block frame embedding (`frame-ancestors 'none'`)
+- [x] PASS: Registration prevents account enumeration
+- [x] PASS: Forgot-password prevents account enumeration
+- [x] PASS: Rate limiting: `max_frequency = "60s"` prevents email flooding
+- [x] PASS: Input validation on register form uses Zod schema
+- [x] PASS: Edge Function validates method (POST only, line 260) and payload (line 271)
+- [x] PASS: Edge Function uses service role key only for reading profiles.locale -- minimal privilege
+- [ ] BUG-12: `.env.example` exists but is incomplete. It lists `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and `NEXT_PUBLIC_SITE_URL` -- but is MISSING `SMTP_PASS`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER` which are required by the Edge Function.
+- [ ] BUG-13 (LOW): Email confirmation links use `{{ .SiteURL }}/auth/confirm?token_hash=...` without locale prefix. The auth confirm route at `src/app/[locale]/auth/confirm/route.ts` needs a locale segment. Works via middleware redirect but adds an unnecessary HTTP hop.
 
 #### Red-Team Findings
 
-- [ ] BUG-14 (MEDIUM): The `verify-email` page reads `email` from URL query params (`searchParams.get("email")`) and displays it directly via `t("subtitle", { email })`. If `next-intl` does not sanitize interpolated values, this could be an XSS vector via crafted URL like `/verify-email?email=<script>alert(1)</script>`. The `email` value is rendered inside a `<p>` tag. React auto-escapes JSX expressions, so this is likely safe, but the email value is also passed to `supabase.auth.resend()` which sends it to the Supabase API -- a user could trigger resend for an arbitrary email address (though Supabase rate-limits this).
-- [x] Auth routes use server-side Supabase client (via `createClient()` from `@/lib/supabase/server`) -- no client-side token manipulation possible
-- [x] No secrets exposed in HTML templates -- templates only use Supabase Go template variables (`{{ .SiteURL }}`, `{{ .TokenHash }}`)
+- [ ] BUG-14 (MEDIUM): Verify-email page reads `email` from URL query params and passes it to `supabase.auth.resend()`. Any email address can be used to trigger a resend. Rate-limited by Supabase (60s) but still allows targeted email sending to arbitrary addresses.
+- [ ] BUG-15 (NEW - MEDIUM): Edge Function logs full email address in plaintext: `console.log(\`Email sent: type=..., locale=..., to=${user.email}\`)` (line 302). This violates the spec requirement: "Alle versandten E-Mails werden mit Empfaenger-Hash (kein Klartext) geloggt." Should hash or mask the email address before logging.
+- [ ] BUG-16 (NEW - MEDIUM): Auth confirm route redirects to `/${locale}/settings` for `email_change` type (line 56-58), but there is NO `/settings` route in the routing config (`src/i18n/routing.ts`). The account page is at `/account` (localized to `/konto` in DE). This redirect will result in a 404 page after confirming an email change.
+- [ ] BUG-17 (NEW - LOW): Edge Function SMTP client defaults to `noreply@train-smarter.at` user and `s306.goserver.host` host when env vars are not set (lines 223-226). While this is a reasonable fallback for development, in production the SMTP password default is empty string (`""`), which means if `SMTP_PASS` is not set, the function will attempt to connect with no password and fail silently. Should throw an explicit error if required env vars are missing.
+- [x] PASS: Auth routes use server-side Supabase client -- no client-side token manipulation possible
+- [x] PASS: No secrets exposed in HTML templates
 
 ---
 
-### Bugs Found
+### Bugs Found (Updated)
+
+#### FIXED since previous QA:
+- ~~BUG-4~~: Reply-To header now set in Edge Function (line 248). FIXED.
+- ~~BUG-7~~: Recovery templates now include 1-hour expiry notice. FIXED.
+- ~~BUG-10~~: Plain-text fallback now generated by Edge Function. FIXED (when Hook is active).
+
+#### Remaining Bugs:
 
 #### BUG-1: Port mismatch between spec and implementation
 - **Severity:** Low
 - **Steps to Reproduce:**
   1. Read spec: "Port 587 (TLS)"
-  2. Read `supabase/config.toml`: port = 465 (SSL)
+  2. Read `supabase/config.toml` and Edge Function: port = 465 (SSL)
   3. Expected: Spec and config match
-  4. Actual: Spec says 587 TLS, config uses 465 SSL
+  4. Actual: Spec says 587 TLS, implementation uses 465 SSL
 - **Priority:** Nice to have -- update spec to match reality (465 SSL works fine with Webgo)
 
 #### BUG-2: SPF record not verified
@@ -301,95 +453,65 @@ PROJ-13 is a large feature covering Supabase Auth emails (Phase 1), App-event em
 - **Steps to Reproduce:** Same as BUG-2 for DKIM
 - **Priority:** Fix before deployment -- emails may land in spam without DKIM
 
-#### BUG-4: Missing Reply-To and List-Unsubscribe headers
+#### BUG-5: Confirmation email subject mismatch in config.toml (irrelevant once Hook is active)
 - **Severity:** Low
 - **Steps to Reproduce:**
-  1. Spec requires Reply-To: office@train-smarter.at on relevant emails
-  2. Templates have no header control (Supabase manages headers)
-  3. Expected: Reply-To configured at Supabase SMTP level
-  4. Actual: No Reply-To configuration found
-- **Priority:** Nice to have -- can be configured in Supabase dashboard
+  1. config.toml: "Bestaetige deine E-Mail-Adresse"
+  2. Edge Function: "Bitte bestaetige deine E-Mail-Adresse -- Train Smarter" (matches spec)
+  3. While Hook is not active, wrong subject is used
+- **Priority:** Nice to have -- will auto-resolve when BUG-9 is fixed
 
-#### BUG-5: Confirmation email subject mismatch
+#### BUG-6: Recovery email subject mismatch in config.toml (irrelevant once Hook is active)
 - **Severity:** Low
-- **Steps to Reproduce:**
-  1. Spec: "Bitte bestaetige deine E-Mail-Adresse -- Train Smarter"
-  2. config.toml: "Bestaetige deine E-Mail-Adresse"
-  3. Expected: Subjects match spec
-  4. Actual: Missing "Bitte" prefix and "-- Train Smarter" suffix
-- **Priority:** Nice to have
-
-#### BUG-6: Recovery email subject mismatch
-- **Severity:** Low
-- **Steps to Reproduce:**
-  1. Spec: "Passwort zuruecksetzen -- Train Smarter"
-  2. config.toml: "Passwort zuruecksetzen"
-  3. Expected: Subjects match spec
-  4. Actual: Missing "-- Train Smarter" suffix
-- **Priority:** Nice to have
-
-#### BUG-7: No link expiry notice in recovery email
-- **Severity:** Low
-- **Steps to Reproduce:**
-  1. Open recovery_de.html or recovery_en.html
-  2. Expected: Text mentions "Link gueltig 1h" or similar
-  3. Actual: No mention of link expiry
-- **Priority:** Nice to have
+- **Steps to Reproduce:** Same as BUG-5 for recovery subject
+- **Priority:** Nice to have -- will auto-resolve when BUG-9 is fixed
 
 #### BUG-8: No notification email to old address on email change
 - **Severity:** Medium
 - **Steps to Reproduce:**
   1. Spec: "Bestaetigungs-E-Mail an neue Adresse, Hinweis-E-Mail an alte Adresse"
-  2. Only `email_change_de.html`/`email_change_en.html` exist (confirmation to new)
-  3. Expected: Second template for old address notification
-  4. Actual: No old-address notification template or mechanism
+  2. Only confirmation to new address exists
+  3. Expected: Second template/mechanism for old address notification
+  4. Actual: No old-address notification
 - **Priority:** Fix in next sprint -- security best practice to notify old email
 
-#### BUG-9: Auth Hook for locale-based template selection NOT implemented (CRITICAL GAP)
-- **Severity:** High
+#### BUG-9: Auth Hook Edge Function exists but NOT WIRED UP (DOWNGRADED from High to Medium)
+- **Severity:** Medium (was High -- code now exists, just needs configuration)
 - **Steps to Reproduce:**
-  1. Register with English locale (navigate to /en/register)
-  2. Check `supabase/config.toml` -- all templates point to `_de.html`
-  3. `supabase/functions/` directory is empty -- no Send Email Hook exists
-  4. Expected: English users receive English emails based on `profiles.locale`
-  5. Actual: ALL users receive German emails regardless of their locale preference
-- **Priority:** Fix before deployment -- core requirement of bilingual email feature
-
-#### BUG-10: No plain-text email fallbacks
-- **Severity:** Medium
-- **Steps to Reproduce:**
-  1. Check all 10 HTML templates -- no `.txt` counterparts exist
-  2. Supabase `content_path` only supports one file per template type
-  3. Expected: Plain-text fallback for spam filter optimization
-  4. Actual: HTML-only emails
-- **Priority:** Fix in next sprint -- affects deliverability
+  1. Check `supabase/config.toml` -- no `[auth.hook.send_email]` section exists
+  2. Edge Function `supabase/functions/send-auth-email/index.ts` exists with correct logic
+  3. Register with English locale (navigate to /en/register)
+  4. Expected: English email sent via Edge Function
+  5. Actual: German email sent via config.toml hardcoded templates because Hook is not registered
+- **Fix:** Add `[auth.hook.send_email]` to config.toml OR configure in Supabase Dashboard -> Auth -> Hooks -> Send Email pointing to the Edge Function
+- **Priority:** Fix before deployment -- this is a configuration step, not a code change
 
 #### BUG-11: No email retry/queue mechanism
 - **Severity:** Low
 - **Steps to Reproduce:**
   1. Spec: "Retry-Mechanismus: 3 Versuche in 1h"
-  2. No queue or retry logic exists in codebase
+  2. Edge Function returns 500 on failure, no retry
   3. Expected: Failed emails are retried
-  4. Actual: Failed emails are lost (Supabase may have internal retry, but it is not configurable)
-- **Priority:** Nice to have -- Supabase may handle this internally
+  4. Actual: Failed emails are lost
+- **Priority:** Nice to have -- Supabase may have internal retry for Hook failures
 
-#### BUG-12: Missing .env.local.example
+#### BUG-12: .env.example incomplete (missing SMTP vars)
 - **Severity:** Medium
 - **Steps to Reproduce:**
-  1. Security rules require `.env.local.example` with all required env vars
-  2. File does not exist
-  3. Expected: `.env.local.example` documenting `SMTP_PASS`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, etc.
-  4. Actual: No documentation of required environment variables
+  1. Read `.env.example`: only lists Supabase and site URL vars
+  2. Edge Function requires `SMTP_PASS`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`
+  3. Expected: All required env vars documented
+  4. Actual: SMTP vars missing from .env.example
 - **Priority:** Fix before deployment
 
 #### BUG-13: Email confirmation links missing locale prefix
 - **Severity:** Low
 - **Steps to Reproduce:**
-  1. Open `confirmation_de.html`: link is `{{ .SiteURL }}/auth/confirm?token_hash=...`
-  2. The auth confirm route lives at `src/app/[locale]/auth/confirm/route.ts`
-  3. Expected: Link includes locale prefix e.g., `/de/auth/confirm?...`
-  4. Actual: Link has no locale prefix; relies on middleware redirect adding `/de/`
-- **Priority:** Nice to have -- works via redirect but adds unnecessary HTTP hop
+  1. Open any template: link is `{{ .SiteURL }}/auth/confirm?token_hash=...`
+  2. Auth confirm route requires locale prefix in URL path
+  3. Expected: Link includes `/de/auth/confirm?...` or `/en/auth/confirm?...`
+  4. Actual: No locale prefix; relies on middleware redirect
+- **Priority:** Nice to have -- works but adds redirect hop
 
 #### BUG-14: Verify-email page allows resend to arbitrary email
 - **Severity:** Medium
@@ -397,37 +519,81 @@ PROJ-13 is a large feature covering Supabase Auth emails (Phase 1), App-event em
   1. Navigate to `/verify-email?email=victim@example.com`
   2. Click "Resend" button
   3. Expected: Resend only works for the currently registering user's email
-  4. Actual: Any email address from the URL param can be used to trigger a resend. Rate-limited by Supabase (60s) but still allows targeted email sending.
-- **Priority:** Fix in next sprint -- low risk due to rate limiting, but unnecessary exposure
+  4. Actual: Any email from URL param can trigger a resend
+- **Priority:** Fix in next sprint -- low risk due to rate limiting but unnecessary exposure
+
+#### BUG-15 (NEW): Edge Function logs email address in plaintext
+- **Severity:** Medium
+- **Steps to Reproduce:**
+  1. Read `send-auth-email/index.ts` line 302: `console.log(\`...to=${user.email}\`)`
+  2. Spec: "Empfaenger-Hash (kein Klartext)"
+  3. Expected: Email hashed or masked in logs
+  4. Actual: Full email in plaintext in Edge Function logs
+- **Priority:** Fix before deployment -- GDPR/DSGVO concern (PII in logs)
+
+#### BUG-16 (NEW): Auth confirm route redirects email_change to nonexistent /settings route
+- **Severity:** High
+- **Steps to Reproduce:**
+  1. User confirms email change via link in email
+  2. Auth confirm route (`src/app/[locale]/auth/confirm/route.ts` line 56-58) redirects to `/${locale}/settings`
+  3. `src/i18n/routing.ts` has NO `/settings` route -- only `/account` (localized to `/konto` in DE)
+  4. Expected: Redirect to `/account` or `/account/settings` (if it exists)
+  5. Actual: User lands on 404 page after confirming email change
+- **Priority:** Fix before deployment -- blocks email change functionality entirely
+
+#### BUG-17 (NEW): Edge Function silent failure on missing SMTP_PASS
+- **Severity:** Low
+- **Steps to Reproduce:**
+  1. Read line 226: `const smtpPass = Deno.env.get("SMTP_PASS") ?? ""`
+  2. If SMTP_PASS not set, attempts SMTP connection with empty password
+  3. Expected: Explicit error thrown when required env vars are missing
+  4. Actual: Silent connection failure with unclear error message
+- **Priority:** Nice to have -- defense in depth
 
 ---
 
 ### Responsive Testing (Templates)
 
-- [x] 375px (Mobile): Email templates use `width="560"` fixed table. On mobile email clients, this will cause horizontal scrolling. However, email `width` attributes are typically overridden by mobile email clients (Gmail, Apple Mail). Acceptable for email rendering.
+- [x] 375px (Mobile): Email templates use `width="560"` fixed table. Mobile email clients (Gmail, Apple Mail) typically override this. Acceptable.
 - [x] 768px (Tablet): Templates render well at this width.
 - [x] 1440px (Desktop): Templates render well, centered in viewport.
 
 ### Cross-Browser (Auth Pages)
 
-- [x] Chrome: Build succeeds, auth pages use standard React/shadcn components -- no browser-specific issues expected.
+- [x] Chrome: Build succeeds, auth pages use standard React/shadcn components.
 - [x] Firefox: Same standard components.
 - [x] Safari: Same standard components.
-- Note: Full browser testing requires running the app and manually navigating. Build verification confirms no compilation issues.
+- Note: Full browser testing requires running app and manually navigating.
+
+---
+
+### Regression Testing
+
+- [x] PROJ-4 (Authentication): Login, register, forgot-password pages build and route correctly.
+- [x] PROJ-5 (Athleten-Management): Organisation page builds correctly, no regressions from recent localized pathname changes.
+- [x] PROJ-11 (DSGVO): GDPR API routes (`/api/gdpr/delete-account`, `/api/gdpr/export`) present in build output.
+- [x] PROJ-9 (Team-Verwaltung): Organisation page and team routes build correctly.
 
 ---
 
 ### Summary
 
-- **Acceptance Criteria:** 7/26 passed (partial implementation -- auth templates done, app-event emails not started)
-- **Bugs Found:** 14 total (0 critical, 1 high, 5 medium, 8 low)
-- **Security:** Generally solid for what is implemented. Auth routes are well-protected. Minor issue with verify-email resend exposure (BUG-14).
+- **Acceptance Criteria:** 10/26 passed (improved from 7/26 -- auth templates + Edge Function code done, app-event emails not started)
+- **Bugs Found:** 14 total (0 critical, 1 high, 6 medium, 7 low)
+  - 3 bugs FIXED since last QA: BUG-4 (Reply-To), BUG-7 (link expiry), BUG-10 (plain-text)
+  - 3 NEW bugs found: BUG-15 (PII in logs), BUG-16 (email_change redirect 404), BUG-17 (silent SMTP failure)
+- **Security:** Generally solid. New concern: BUG-15 (email in plaintext logs) is a DSGVO issue. BUG-16 (broken redirect) blocks email change.
 - **Production Ready:** NO
-- **Recommendation:** The high-priority bug (BUG-9: Auth Hook for locale-based template selection) MUST be fixed before this feature can be considered complete. The English email templates exist but are never used because the Auth Hook / Edge Function that selects templates based on `profiles.locale` has not been built. Additionally, BUG-12 (.env.local.example) should be addressed for developer onboarding.
 
-The feature is approximately 30% complete:
-- DONE: Auth email templates (DE + EN), locale column in profiles, registration locale propagation, auth confirm/callback routes, locale switcher UI
-- NOT DONE: Auth Hook for bilingual dispatch, App-event emails (athlete invite, acceptance, disconnection), DNS verification (SPF/DKIM), plain-text fallbacks, email retry queue
+**Blocking issues for deployment:**
+1. **BUG-9 (Medium):** Wire up Auth Hook in Supabase Dashboard -- code exists, just needs configuration
+2. **BUG-16 (High):** Fix email_change redirect from `/settings` to `/account` in auth confirm route
+3. **BUG-15 (Medium):** Hash/mask email in Edge Function logs (DSGVO compliance)
+4. **BUG-12 (Medium):** Add SMTP env vars to `.env.example`
+
+**Feature completion: ~45%**
+- DONE: Auth email templates (DE + EN), Edge Function with locale detection, plain-text fallback, Reply-To headers, recovery expiry notice, locale column in profiles, auth confirm/callback routes
+- NOT DONE: Wire up Auth Hook, fix email_change redirect, App-event emails (athlete invite, acceptance, disconnection, export, deletion), DNS verification (SPF/DKIM), email retry queue, old-address notification on email change
 
 ## Offene Punkte aus PROJ-11 (DSGVO)
 
