@@ -1,8 +1,15 @@
 # PROJ-13: E-Mail & Transaktions-Benachrichtigungen
 
-## Status: Planned
+## Status: Deployed
 **Created:** 2026-03-12
 **Last Updated:** 2026-03-15 (Enhancement: E-Mail-Locale basierend auf Seitensprache)
+
+## Deployment
+- **Production URL:** https://www.train-smarter.at
+- **Deployed:** 2026-03-15
+- **Edge Function:** `send-auth-email` deployed to Supabase (v1, ACTIVE)
+- **Vercel:** Auto-deployed from main branch
+- **Manual Step Required:** Configure Auth Hook in Supabase Dashboard (Auth → Hooks → Send Email → point to `send-auth-email` Edge Function)
 
 ## Dependencies
 - Requires: PROJ-4 (Authentication & Onboarding) — Auth-E-Mails (Registrierung, Passwort-Reset, E-Mail-Bestätigung)

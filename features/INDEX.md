@@ -24,7 +24,7 @@
 | PROJ-10 | Admin-Bereich | Planned | [PROJ-10-admin-bereich.md](PROJ-10-admin-bereich.md) | 2026-03-12 |
 | PROJ-11 | DSGVO-Compliance & Datenschutz | Deployed | [PROJ-11-dsgvo-datenschutz.md](PROJ-11-dsgvo-datenschutz.md) | 2026-03-12 |
 | PROJ-12 | Übungsbibliothek | Planned | [PROJ-12-uebungsbibliothek.md](PROJ-12-uebungsbibliothek.md) | 2026-03-12 |
-| PROJ-13 | E-Mail & Transaktions-Benachrichtigungen | In Review | [PROJ-13-email-benachrichtigungen.md](PROJ-13-email-benachrichtigungen.md) | 2026-03-12 |
+| PROJ-13 | E-Mail & Transaktions-Benachrichtigungen | Deployed | [PROJ-13-email-benachrichtigungen.md](PROJ-13-email-benachrichtigungen.md) | 2026-03-12 |
 | PROJ-14 | In-App Notifications & Einstellungen | Planned | [PROJ-14-notifications.md](PROJ-14-notifications.md) | 2026-03-12 |
 | PROJ-15 | Globale Suche | Planned | [PROJ-15-globale-suche.md](PROJ-15-globale-suche.md) | 2026-03-12 |
 | PROJ-16 | Test-Strategie & Qualitätssicherung | In Progress | [PROJ-16-test-strategie.md](PROJ-16-test-strategie.md) | 2026-03-12 |
