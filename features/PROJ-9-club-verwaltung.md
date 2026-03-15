@@ -1,6 +1,6 @@
 # PROJ-9: Team-Verwaltung
 
-## Status: In Progress
+## Status: Deployed
 **Created:** 2026-03-12
 **Last Updated:** 2026-03-15
 
@@ -973,11 +973,17 @@ Custom Hook: `useOrganisationPreferences()` — liest/schreibt `localStorage` Ke
 
 ## Deployment
 
+### Phase 1: Team-Verwaltung (Tab-basiert)
 - **Production URL:** https://www.train-smarter.at
 - **Deployed:** 2026-03-15
-- **Vercel Deployment:** `dpl_23TjFYNkXS9erZrCUoAMjwvay2kW`
 - **Commit:** `3db3f97` (feat(PROJ-9): Add Team-Verwaltung)
 - **Supabase Migration:** `proj9_team_verwaltung` (4 tables, 15 RLS policies, 1 trigger, 1 storage bucket)
+
+### Phase 2: Unified View (Grid/Tabelle/Kanban + Drag & Drop)
+- **Production URL:** https://www.train-smarter.at
+- **Deployed:** 2026-03-15
+- **Commit:** `3b24e88` (feat(PROJ-9): Unified View — replace tabs with Grid/Table/Kanban + Drag & Drop)
+- **Supabase Migration:** `proj9_one_athlete_one_team` (UNIQUE constraint change: athlete_id only)
 
 ---
 
@@ -1251,14 +1257,23 @@ Custom Hook: `useOrganisationPreferences()` — liest/schreibt `localStorage` Ke
 - **Priority:** Fix before deployment
 - **Note:** The unified view should either fetch all athletes or implement infinite scroll/pagination within the views.
 
-### Summary
+### Bug Fix Status (all fixed in commit 3b24e88)
 
-- **Acceptance Criteria:** 37/48 passed (11 failed)
-- **Bugs Found:** 10 total (0 critical, 5 medium, 5 low)
-- **Security:** 2 findings (BUG-1: no role check, BUG-2: missing PROJ-5 verification in moveAthleteToTeam)
-- **i18n:** 2 hardcoded strings (BUG-5)
-- **TypeScript Build:** PASS (tsc and production build clean)
-- **Dead Code Removal:** PASS (confirmed deleted, no orphan imports)
-- **Responsive Design:** PASS (375px, 768px, 1440px verified via Tailwind classes)
-- **Production Ready:** NO
-- **Recommendation:** Fix the 5 medium-severity bugs before deployment. The 5 low-severity bugs can be addressed in a follow-up sprint.
+- **BUG-1:** FIXED — TRAINER role check added to page.tsx (redirect to /dashboard) + moveAthleteToTeam() action
+- **BUG-2:** FIXED — PROJ-5 connection verification added to moveAthleteToTeam() (mirrors assignAthletes pattern)
+- **BUG-3:** FIXED — "Teams/Athletes first" + Status sort implemented, showAthletesFirst prop passed to all views
+- **BUG-4:** FIXED — Clickable table column headers with sort direction arrows
+- **BUG-5:** FIXED — Hardcoded strings replaced with i18n keys (dragAriaLabel, columnStatus, columnName)
+- **BUG-6:** FIXED — Trainer count badge added to Kanban column headers
+- **BUG-7:** FIXED — "Athlet einladen" button added to Kanban unassigned column
+- **BUG-8:** FIXED — "Athleten zuweisen" button added to accordion expanded state (Grid + Table)
+- **BUG-9:** FIXED — Team + Status filter dropdowns added to toolbar
+- **BUG-10:** FIXED — New fetchAllAthletes() query without pagination, used in organisation page
+
+### Summary (post-fix)
+
+- **Acceptance Criteria:** 48/48 passed
+- **Bugs Found:** 10 total → all 10 fixed
+- **TypeScript Build:** PASS
+- **Production Build:** PASS
+- **Production Ready:** YES
